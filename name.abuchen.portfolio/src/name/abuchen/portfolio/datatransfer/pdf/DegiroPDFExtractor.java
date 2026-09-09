@@ -1694,7 +1694,9 @@ public class DegiroPDFExtractor extends AbstractPDFExtractor
                             // @formatter:on
                             section -> section
                                 .id("documentContext-withExchangeRate-withAutoFxFee-withFee-withStockExchangePlace")
-                                .attributes("date", "time", "name", "isin", "shares", "currency", "amountFx", "exchangeRate", "fxFee", "fee", "amount")
+                                                        .attributes("date", "time", "name", "isin", "shares",
+                                                                        "currency", "amountFx", "gross", "exchangeRate",
+                                                                        "fxFee", "fee", "amount")
                                 .documentContext("currencyAccount")
                                 .match("^(?<date>[\\d]{2}\\-[\\d]{2}\\-[\\d]{4}) (?<time>[\\d]{2}:[\\d]{2}) "
                                                 + "(?<name>.*) "
@@ -1703,7 +1705,7 @@ public class DegiroPDFExtractor extends AbstractPDFExtractor
                                                 + "(?<shares>[\\-\\.,'\\d]+) "
                                                 + "(\\-)?[\\.,'\\d\\s]+[\\.|,][\\d]{2,6} "
                                                 + "(?<currency>[\\w]{3}) (\\-)?(?<amountFx>[\\.,'\\d\\s]+[\\.|,][\\d]{2}) "
-                                                + "[\\w]{3} (\\-)?[\\.,'\\d\\s]+[\\.|,][\\d]{2} "
+                                                                        + "[\\w]{3} (\\-)?(?<gross>[\\.,'\\d\\s]+[\\.|,][\\d]{2}) "
                                                 + "(?<exchangeRate>[\\.,'\\d]+[\\.|,][\\d]{1,4}) "
                                                 + "\\-(?<fxFee>[\\.,'\\d\\s]+[\\.|,][\\d]{2}) "
                                                 + "\\-(?<fee>[\\.,'\\d\\s]+[\\.|,][\\d]{2}) "
@@ -1735,12 +1737,8 @@ public class DegiroPDFExtractor extends AbstractPDFExtractor
 
                                     if (currencyFx.equals(t.getPortfolioTransaction().getSecurity().getCurrencyCode()))
                                     {
-                                        var gross = Money.of(v.get("currencyAccount"), asAmount(v.get("amount")));
-
-                                        if (t.getPortfolioTransaction().getType() == PortfolioTransaction.Type.BUY)
-                                            gross = gross.subtract(fxFeeAmount).subtract(feeAmount);
-                                        else
-                                            gross = gross.add(fxFeeAmount).add(feeAmount);
+                                                                var gross = Money.of(v.get("currencyAccount"),
+                                                                                asAmount(v.get("gross")));
 
                                         var exchangeRate = BigDecimal.ONE.divide(asExchangeRate(v.get("exchangeRate")), 10, RoundingMode.HALF_DOWN);
                                         var forex = Money.of(currencyFx, asAmount(v.get("amountFx")));
@@ -1762,7 +1760,9 @@ public class DegiroPDFExtractor extends AbstractPDFExtractor
                             // @formatter:on
                             section -> section
                                 .id("documentContext-withExchangeRate-withAutoFxFee-withStockExchangePlace")
-                                .attributes("date", "time", "name", "isin", "shares", "currency", "amountFx", "exchangeRate", "fxFee", "amount")
+                                                        .attributes("date", "time", "name", "isin", "shares",
+                                                                        "currency", "amountFx", "gross", "exchangeRate",
+                                                                        "fxFee", "amount")
                                 .documentContext("currencyAccount")
                                 .match("^(?<date>[\\d]{2}\\-[\\d]{2}\\-[\\d]{4}) (?<time>[\\d]{2}:[\\d]{2}) "
                                                 + "(?<name>.*) "
@@ -1771,7 +1771,7 @@ public class DegiroPDFExtractor extends AbstractPDFExtractor
                                                 + "(?<shares>[\\-\\.,'\\d]+) "
                                                 + "(\\-)?[\\.,'\\d\\s]+[\\.|,][\\d]{2,6} "
                                                 + "(?<currency>[\\w]{3}) (\\-)?(?<amountFx>[\\.,'\\d\\s]+[\\.|,][\\d]{2}) "
-                                                + "[\\w]{3} (\\-)?[\\.,'\\d\\s]+[\\.|,][\\d]{2} "
+                                                                        + "[\\w]{3} (\\-)?(?<gross>[\\.,'\\d\\s]+[\\.|,][\\d]{2}) "
                                                 + "(?<exchangeRate>[\\.,'\\d]+[\\.|,][\\d]{1,4}) "
                                                 + "\\-(?<fxFee>[\\.,'\\d\\s]+[\\.|,][\\d]{2}) "
                                                 + "(\\-)?(?<amount>[\\.,'\\d\\s]+[\\.|,][\\d]{2})$")
@@ -1800,12 +1800,8 @@ public class DegiroPDFExtractor extends AbstractPDFExtractor
 
                                     if (currencyFx.equals(t.getPortfolioTransaction().getSecurity().getCurrencyCode()))
                                     {
-                                        var gross = Money.of(v.get("currencyAccount"), asAmount(v.get("amount")));
-
-                                        if (t.getPortfolioTransaction().getType() == PortfolioTransaction.Type.BUY)
-                                            gross = gross.subtract(fxFeeAmount);
-                                        else
-                                            gross = gross.add(fxFeeAmount);
+                                                                var gross = Money.of(v.get("currencyAccount"),
+                                                                                asAmount(v.get("gross")));
 
                                         var exchangeRate = BigDecimal.ONE.divide(asExchangeRate(v.get("exchangeRate")), 10, RoundingMode.HALF_DOWN);
                                         var forex = Money.of(currencyFx, asAmount(v.get("amountFx")));
@@ -1826,7 +1822,9 @@ public class DegiroPDFExtractor extends AbstractPDFExtractor
                             // @formatter:on
                             section -> section
                                 .id("documentContext-withExchangeRate-withoutFee-withoutStockExchangePlace")
-                                .attributes("date", "time", "name", "isin", "shares", "currency", "amountFx", "exchangeRate", "amount")
+                                                        .attributes("date", "time", "name", "isin", "shares",
+                                                                        "currency", "amountFx", "gross", "exchangeRate",
+                                                                        "amount")
                                 .documentContext("currencyAccount")
                                 .match("^(?<date>[\\d]{2}\\-[\\d]{2}\\-[\\d]{4}) (?<time>[\\d]{2}:[\\d]{2}) "
                                                 + "(?<name>.*) "
@@ -1835,7 +1833,7 @@ public class DegiroPDFExtractor extends AbstractPDFExtractor
                                                 + "(?<shares>[\\-\\.,'\\d]+) "
                                                 + "(\\-)?[\\.,'\\d\\s]+[\\.|,][\\d]{2,6} "
                                                 + "(?<currency>[\\w]{3}) (\\-)?(?<amountFx>[\\.,'\\d\\s]+[\\.|,][\\d]{2}) "
-                                                + "[\\w]{3} (\\-)?[\\.,'\\d\\s]+[\\.|,][\\d]{2} "
+                                                                        + "[\\w]{3} (\\-)?(?<gross>[\\.,'\\d\\s]+[\\.|,][\\d]{2}) "
                                                 + "(?<exchangeRate>[\\.,'\\d]+[\\.|,][\\d]{1,4}) "
                                                 + "0[\\.,]00 "
                                                 + "(\\-)?(?<amount>[\\.,'\\d\\s]+[\\.|,][\\d]{2})$")
@@ -1861,7 +1859,8 @@ public class DegiroPDFExtractor extends AbstractPDFExtractor
 
                                     if (currencyFx.equals(t.getPortfolioTransaction().getSecurity().getCurrencyCode()))
                                     {
-                                        var gross = Money.of(v.get("currencyAccount"), asAmount(v.get("amount")));
+                                                                var gross = Money.of(v.get("currencyAccount"),
+                                                                                asAmount(v.get("gross")));
 
                                         var exchangeRate = BigDecimal.ONE.divide(asExchangeRate(v.get("exchangeRate")), 10, RoundingMode.HALF_DOWN);
                                         var forex = Money.of(currencyFx, asAmount(v.get("amountFx")));
