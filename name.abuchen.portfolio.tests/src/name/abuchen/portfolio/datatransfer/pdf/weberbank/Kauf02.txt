@@ -1,4 +1,3 @@
-```
 PDFBox Version: 3.0.7
 Portfolio Performance Version: 0.87.0
 System: win32 | x86_64 | 21.0.5+11-LTS | Azul Systems, Inc.
@@ -36,7 +35,7 @@ Stückzinsen für 232 Tage per 07.04.2026 1.111,28- EUR
 Eingebuchte Aktienverluste 1.111,28 EUR
 Ausmachender Betrag 113.295,54- EUR
  
-Den Gegenwert buchen wir mit Valuta 08.04.2026 zu Lasten des Kontos 1000087112
+Den Gegenwert buchen wir mit Valuta 08.04.2026 zu Lasten des Kontos xxxxxxxxxx
 (IBAN DE69 xxxx xxxx xxxx xxxx xx), BLZ 10120100 (BIC WELADED1WBB).
 Die Wertpapiere schreiben wir Ihrem Depotkonto gut.
 Steuerliche Ausgleichrechnung
@@ -52,7 +51,7 @@ Kapitalertragsteuer 25,00% auf 1.111,28 EUR 277,82 EUR
 Solidaritätszuschlag 5,50% auf 277,82 EUR 15,28 EUR
 Ausmachender Betrag 293,10 EUR
  
-Den Gegenwert buchen wir mit Valuta 02.04.2026 zu Gunsten des Kontos 1000087112
+Den Gegenwert buchen wir mit Valuta 02.04.2026 zu Gunsten des Kontos xxxxxxxxxx
 (IBAN DE69 xxxx xxxx xxxx xxxx xx), BLZ 10120100 (BIC WELADED1WBB).
 Sofern keine Umsatzsteuer ausgewiesen ist, handelt es sich um eine umsatzsteuerbefreite Finanzdienstleistung. 
  
@@ -70,5 +69,3 @@ Steuerausgleich 1.111,28- 0,00 0,00 0,00 1.111,28-
 Nachher 0,00 0,00 0,00 0,00 134.988,57
 Dieses Dokument wurde maschinell erstellt und wird nicht unterschrieben.
 0858.04022055.0001414OR07  
-
-```

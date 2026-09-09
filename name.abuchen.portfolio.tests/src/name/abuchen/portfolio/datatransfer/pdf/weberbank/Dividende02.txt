@@ -4,7 +4,7 @@ System: win32 | x86_64 | 21.0.5+11-LTS | Azul Systems, Inc.
 -----------------------------------------
  Seite 1
 Depotnummer
- 8000075900
+ xxxxxxxxxx
  Kundennummer xxxxxxxxxx
  Namexxxxxx
 Abrechnungsnr. 54861333620

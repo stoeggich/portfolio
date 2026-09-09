@@ -181,21 +181,19 @@ public class WeberbankPDFExtractor extends AbstractPDFExtractor
 
                         .conclude(ExtractorUtils.fixGrossValueBuySell())
 
-                        .wrap((t, ctx) -> {
-                            var item = new BuySellEntryItem(t);
-
+                        .wrap(t -> {
                             // @formatter:off
                             // Handshake for tax lost adjustment transaction
                             // @formatter:on
-                            context.put("name", item.getSecurity().getName());
-                            context.put("isin", item.getSecurity().getIsin());
-                            context.put("wkn", item.getSecurity().getWkn());
-                            context.put("shares", Long.toString(item.getShares()));
+                            context.put("name", t.getPortfolioTransaction().getSecurity().getName());
+                            context.put("isin", t.getPortfolioTransaction().getSecurity().getIsin());
+                            context.put("wkn", t.getPortfolioTransaction().getSecurity().getWkn());
+                            context.put("shares", Long.toString(t.getPortfolioTransaction().getShares()));
 
                             if (t.getNote() != null)
                                 context.put("note", t.getNote());
 
-                            return item;
+                            return new BuySellEntryItem(t);
                         });
 
         addTaxesSectionsTransaction(pdfTransaction, type);
@@ -351,32 +349,29 @@ public class WeberbankPDFExtractor extends AbstractPDFExtractor
                         .match("^Ausmachender Betrag (?<amount>[\\.,\\d]+) (?<currency>[A-Z]{3})$") //
                         .match("^Den Gegenwert buchen wir mit Valuta (?<date>[\\d]{2}\\.[\\d]{2}\\.[\\d]{4}) .*$") //
                         .assign((t, v) -> {
+                            // Date of the settlement, time of the trade
                             if (context.get("time") != null)
                                 t.setDateTime(asDate(v.get("date"), context.get("time")));
                             else
                                 t.setDateTime(asDate(v.get("date")));
 
-                            t.setShares(Long.parseLong(context.get("shares")));
-                            t.setSecurity(getOrCreateSecurity(context));
+                            if (context.get("shares") != null)
+                                t.setShares(Long.parseLong(context.get("shares")));
+
+                            if (context.get("isin") != null)
+                                t.setSecurity(getOrCreateSecurity(context));
 
                             t.setCurrencyCode(asCurrencyCode(v.get("currency")));
                             t.setAmount(asAmount(v.get("amount")));
 
                             t.setNote(context.get("note"));
-                        })
 
-                        // @formatter:off
-                        // Ausmachender Betrag 293,10 EUR
-                        // @formatter:on
-                        .section("gross", "currency").optional() //
-                        .match("^Ausmachender Betrag (?<gross>[\\.,\\d]+) (?<currency>[A-Z]{3})$") //
-                        .assign((t, v) -> {
-                            if (context.get("exchangeRate") != null)
+                            if (t.getSecurity() != null && context.get("exchangeRate") != null)
                             {
                                 var rate = asExchangeRate(context);
                                 type.getCurrentContext().putType(rate);
 
-                                var gross = Money.of(rate.getBaseCurrency(), asAmount(v.get("gross")));
+                                var gross = Money.of(rate.getBaseCurrency(), asAmount(v.get("amount")));
                                 var fxGross = rate.convert(rate.getTermCurrency(), gross);
 
                                 checkAndSetGrossUnit(gross, fxGross, t, type.getCurrentContext());

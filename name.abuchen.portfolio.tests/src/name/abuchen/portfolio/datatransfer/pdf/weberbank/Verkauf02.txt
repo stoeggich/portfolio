@@ -38,8 +38,8 @@ Verrechnete Aktienverluste 2.115,75- EUR
 Berechnungsgrundlage für die Kapitalertragsteuer 2.115,75 EUR
 0858.06182053.0002195OR07  
 Seite 2 von 2
-Depotnummer 8000075900
-Kundennummer 1064817006
+Depotnummer xxxxxxxxxx
+Kundennummer xxxxxxxxxx
 Auftragsnummer 673747/44.00
 Datum 18.06.2026
 Kapitalertragsteuer 25,00% auf 2.115,75 EUR 528,94 EUR
@@ -47,7 +47,7 @@ Solidaritätszuschlag 5,50% auf 528,94 EUR 29,09 EUR
 Ausmachender Betrag 558,03 EUR
  
 Den Gegenwert buchen wir mit Valuta 18.06.2026 zu Gunsten des Kontos xxxxxxxxxx
-(IBAN DE69 DE69 xxxx xxxx xxxx xxxx xx), BLZ 10120100 (BIC WELADED1WBB).
+(IBAN DE69 xxxx xxxx xxxx xxxx xx), BLZ 10120100 (BIC WELADED1WBB).
 Sofern keine Umsatzsteuer ausgewiesen ist, handelt es sich um eine umsatzsteuerbefreite Finanzdienstleistung. 
  
 Für das Geschäft wurde keine Anlageberatung erbracht.
