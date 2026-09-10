@@ -144,7 +144,7 @@ public class TradegateAGPDFExtractorTest
 
         // check buy sell transaction
         assertThat(results, hasItem(purchase( //
-                        hasDate("2026-05-27T16:17"), hasShares(2.673510), //
+                        hasDate("2026-05-27T16:17:00"), hasShares(2.673510), //
                         hasSource("Kauf03.txt"), //
                         hasNote("Order-/Ref.nr. 9876543"), //
                         hasAmount("EUR", 25.00), hasGrossValue("EUR", 25.00), //
