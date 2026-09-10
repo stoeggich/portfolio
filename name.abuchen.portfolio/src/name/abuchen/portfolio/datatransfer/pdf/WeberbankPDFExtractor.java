@@ -15,7 +15,6 @@ import name.abuchen.portfolio.model.BuySellEntry;
 import name.abuchen.portfolio.model.Client;
 import name.abuchen.portfolio.model.PortfolioTransaction;
 import name.abuchen.portfolio.money.Money;
-import name.abuchen.portfolio.money.Values;
 
 @SuppressWarnings("nls")
 public class WeberbankPDFExtractor extends AbstractPDFExtractor
@@ -105,14 +104,9 @@ public class WeberbankPDFExtractor extends AbstractPDFExtractor
                         .assign((t, v) -> {
                             // Percentage quotation, workaround for bonds
                             if (v.get("notation") != null && !"Stück".equalsIgnoreCase(v.get("notation")))
-                            {
-                                var shares = asBigDecimal(v.get("shares"));
-                                t.setShares(Values.Share.factorize(shares.doubleValue() / 100));
-                            }
+                                t.setShares(asBondNominal(v.get("shares")));
                             else
-                            {
                                 t.setShares(asShares(v.get("shares")));
-                            }
                         })
 
                         // @formatter:off
@@ -141,12 +135,15 @@ public class WeberbankPDFExtractor extends AbstractPDFExtractor
                         })
 
                         // @formatter:off
+                        // When purchasing bonds, the accrued interest ("Stückzinsen") is part of the
+                        // purchase price, so the gross value is the total amount.
+                        //
                         // Devisenkurs (EUR/NOK) 11,207 vom 02.04.2026
-                        // Kurswert 112.184,26- EUR
+                        // Ausmachender Betrag 113.295,54- EUR
                         // @formatter:on
                         .section("baseCurrency", "termCurrency", "exchangeRate", "gross").optional() //
                         .match("^Devisenkurs \\((?<baseCurrency>[A-Z]{3})\\/(?<termCurrency>[A-Z]{3})\\) (?<exchangeRate>[\\.,\\d]+).*$") //
-                        .match("^Kurswert (?<gross>[\\.,\\d]+)(\\-)? [A-Z]{3}$") //
+                        .match("^Ausmachender Betrag (?<gross>[\\.,\\d]+)(\\-)? [A-Z]{3}$") //
                         .assign((t, v) -> {
                             var rate = asExchangeRate(v);
                             type.getCurrentContext().putType(rate);
@@ -197,7 +194,6 @@ public class WeberbankPDFExtractor extends AbstractPDFExtractor
                         });
 
         addTaxesSectionsTransaction(pdfTransaction, type);
-        addFeesSectionsTransaction(pdfTransaction, type);
         addTaxLostAdjustmentTransaction(context, type);
     }
 
@@ -252,14 +248,9 @@ public class WeberbankPDFExtractor extends AbstractPDFExtractor
                         .assign((t, v) -> {
                             // Percentage quotation, workaround for bonds
                             if (v.get("notation") != null && !"Stück".equalsIgnoreCase(v.get("notation")))
-                            {
-                                var shares = asBigDecimal(v.get("shares"));
-                                t.setShares(Values.Share.factorize(shares.doubleValue() / 100));
-                            }
+                                t.setShares(asBondNominal(v.get("shares")));
                             else
-                            {
                                 t.setShares(asShares(v.get("shares")));
-                            }
                         })
 
                         // @formatter:off
@@ -425,19 +416,5 @@ public class WeberbankPDFExtractor extends AbstractPDFExtractor
                         .section("creditableWithHoldingTax", "currency").optional() //
                         .match("^Anrechenbare Quellensteuer [\\.,\\d]+[\\s]*% auf [\\.,\\d]+ [A-Z]{3} (?<creditableWithHoldingTax>[\\.,\\d]+) (?<currency>[A-Z]{3})$") //
                         .assign((t, v) -> processWithHoldingTaxEntries(t, v, "creditableWithHoldingTax", type));
-    }
-
-    private <T extends Transaction<?>> void addFeesSectionsTransaction(T transaction, DocumentType type)
-    {
-        transaction //
-
-                        // @formatter:off
-                        // When purchasing bonds, the accrued interest ("Stückzinsen") is treated as a fee.
-                        //
-                        // Stückzinsen für 232 Tage per 07.04.2026 1.111,28- EUR
-                        // @formatter:on
-                        .section("fee", "currency").optional() //
-                        .match("^St.ckzinsen f.r [\\d]+ Tage per [\\d]{2}\\.[\\d]{2}\\.[\\d]{4} (?<fee>[\\.,\\d]+)\\- (?<currency>[A-Z]{3})$") //
-                        .assign((t, v) -> processFeeEntries(t, v, type));
     }
 }

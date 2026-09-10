@@ -109,9 +109,9 @@ public class WeberbankPDFExtractorTest
                         hasDate("2026-04-02T10:48:46"), hasShares(14250.00), //
                         hasSource("Kauf02.txt"), //
                         hasNote("Auftragsnummer 505279/90.00 | Limit 88,50 %"), //
-                        hasAmount("EUR", 113295.54), hasGrossValue("EUR", 112184.26), //
-                        hasForexGrossValue("NOK", 1257249.00), //
-                        hasTaxes("EUR", 0.00), hasFees("EUR", 1111.28))));
+                        hasAmount("EUR", 113295.54), hasGrossValue("EUR", 113295.54), //
+                        hasForexGrossValue("NOK", 1269703.12), //
+                        hasTaxes("EUR", 0.00), hasFees("EUR", 0.00))));
 
         // check tax refund transaction
         assertThat(results, hasItem(taxRefund( //
@@ -154,8 +154,8 @@ public class WeberbankPDFExtractorTest
                         hasDate("2026-04-02T10:48:46"), hasShares(14250.00), //
                         hasSource("Kauf02.txt"), //
                         hasNote("Auftragsnummer 505279/90.00 | Limit 88,50 %"), //
-                        hasAmount("EUR", 113295.54), hasGrossValue("EUR", 112184.26), //
-                        hasTaxes("EUR", 0.00), hasFees("EUR", 1111.28))));
+                        hasAmount("EUR", 113295.54), hasGrossValue("EUR", 113295.54), //
+                        hasTaxes("EUR", 0.00), hasFees("EUR", 0.00))));
 
         // check tax refund transaction
         assertThat(results, hasItem(taxRefund( //
