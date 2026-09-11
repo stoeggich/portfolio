@@ -321,14 +321,17 @@ public class DegiroPDFExtractor extends AbstractPDFExtractor
             // next dividend and adds the first tax it finds within that range. Every other
             // tax cannot be reached and is collected here.
             // @formatter:on
-                            boolean isDividendBlockOpen = false;
+                            LocalDate openDividendDate = null;
+                            String openDividendIsin = null;
                             boolean isTaxAddedToDividendBlock = false;
 
             for (int i = 0; i < lines.length; i++)
             {
-                if (pDividendeTransactions.matcher(lines[i]).matches())
+                                Matcher d = pDividendeTransactions.matcher(lines[i]);
+                                if (d.matches())
                                 {
-                                    isDividendBlockOpen = true;
+                                    openDividendDate = asDate(d.group("date"), d.group("time")).toLocalDate();
+                                    openDividendIsin = d.group("isin");
                                     isTaxAddedToDividendBlock = false;
                                     continue;
                                 }
@@ -336,7 +339,14 @@ public class DegiroPDFExtractor extends AbstractPDFExtractor
                 Matcher m = pDividendeTaxTransactions.matcher(lines[i]);
                 if (m.matches())
                 {
-                                    if (isDividendBlockOpen && !isTaxAddedToDividendBlock)
+                    // @formatter:off
+                    // The block of the open dividend only adds a tax of the same security,
+                    // therefore a tax of another security is collected here as well.
+                    // @formatter:on
+                                    if (!isTaxAddedToDividendBlock && openDividendIsin != null
+                                                    && openDividendIsin.equals(m.group("isin"))
+                                                    && openDividendDate.equals(asDate(m.group("date"), m.group("time"))
+                                                                    .toLocalDate()))
                                     {
                                         isTaxAddedToDividendBlock = true;
                                         continue;
@@ -805,7 +815,8 @@ public class DegiroPDFExtractor extends AbstractPDFExtractor
 
                                 t.setAmount(t.getAmount() - converted.getAmount());
                             }
-                            else if (tax.getCurrencyCode().equals(t.getCurrencyCode()))
+                            else if (tax.getCurrencyCode().equals(t.getCurrencyCode())
+                                            && v.get("isin").equalsIgnoreCase(t.getSecurity().getIsin()))
                             {
                                 t.addUnit(new Unit(Unit.Type.TAX, tax));
                                 t.setAmount(t.getAmount() - tax.getAmount());
@@ -871,7 +882,8 @@ public class DegiroPDFExtractor extends AbstractPDFExtractor
 
                                 t.setAmount(t.getAmount() - converted.getAmount());
                             }
-                            else if (tax.getCurrencyCode().equals(t.getCurrencyCode()))
+                            else if (tax.getCurrencyCode().equals(t.getCurrencyCode())
+                                            && v.get("isin").equalsIgnoreCase(t.getSecurity().getIsin()))
                             {
                                 t.addUnit(new Unit(Unit.Type.TAX, tax));
                                 t.setAmount(t.getAmount() - tax.getAmount());
