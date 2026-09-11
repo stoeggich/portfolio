@@ -3,6 +3,7 @@ package name.abuchen.portfolio.datatransfer.pdf.degiro;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.deposit;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.dividend;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.fee;
+import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.feeRefund;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.hasAmount;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.hasCurrencyCode;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.hasDate;
@@ -835,7 +836,8 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2019-02-01T16:32")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(2.50))));
         assertThat(transaction.getSource(), is("Kontoauszug08.txt"));
-        assertThat(transaction.getNote(), is("Einrichtung von Handelsmodalitäten 2019"));
+        assertThat(transaction.getNote(),
+                        is("Einrichtung von Handelsmodalitäten 2019 (New York Stock Exchange - NSY)"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .collect(Collectors.toList()).get(131).getSubject();
@@ -853,7 +855,8 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2019-02-01T13:35")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(2.50))));
         assertThat(transaction.getSource(), is("Kontoauszug08.txt"));
-        assertThat(transaction.getNote(), is("Einrichtung von Handelsmodalitäten 2019"));
+        assertThat(transaction.getNote(),
+                        is("Einrichtung von Handelsmodalitäten 2019 (New York Stock Exchange - NSY)"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .collect(Collectors.toList()).get(133).getSubject();
@@ -871,7 +874,8 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2019-02-01T13:34")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(2.50))));
         assertThat(transaction.getSource(), is("Kontoauszug08.txt"));
-        assertThat(transaction.getNote(), is("Einrichtung von Handelsmodalitäten 2019"));
+        assertThat(transaction.getNote(),
+                        is("Einrichtung von Handelsmodalitäten 2019 (New York Stock Exchange - NSY)"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .collect(Collectors.toList()).get(135).getSubject();
@@ -889,7 +893,8 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2018-09-05T11:34")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(2.50))));
         assertThat(transaction.getSource(), is("Kontoauszug08.txt"));
-        assertThat(transaction.getNote(), is("Einrichtung von Handelsmodalitäten 2018"));
+        assertThat(transaction.getNote(),
+                        is("Einrichtung von Handelsmodalitäten 2018 (New York Stock Exchange - NSY)"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .collect(Collectors.toList()).get(137).getSubject();
@@ -1358,7 +1363,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-05-03T17:14")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(1.12))));
         assertThat(transaction.getSource(), is("Kontoauszug12.txt"));
-        assertThat(transaction.getNote(), is("Einrichtung von Handelsmodalitäten 2021"));
+        assertThat(transaction.getNote(), is("Einrichtung von Handelsmodalitäten 2021 (Euronext Amsterdam - EAM)"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance).skip(11)
                         .findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -1366,7 +1371,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-04-01T12:03")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(0.06))));
         assertThat(transaction.getSource(), is("Kontoauszug12.txt"));
-        assertThat(transaction.getNote(), is("Einrichtung von Handelsmodalitäten 2021"));
+        assertThat(transaction.getNote(), is("Einrichtung von Handelsmodalitäten 2021 (Euronext Amsterdam - EAM)"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance).skip(12)
                         .findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -1374,7 +1379,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-03-01T11:21")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(0.02))));
         assertThat(transaction.getSource(), is("Kontoauszug12.txt"));
-        assertThat(transaction.getNote(), is("Einrichtung von Handelsmodalitäten 2021"));
+        assertThat(transaction.getNote(), is("Einrichtung von Handelsmodalitäten 2021 (Euronext Amsterdam - EAM)"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance).skip(13)
                         .findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -1382,7 +1387,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-01-31T13:16")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(1.30))));
         assertThat(transaction.getSource(), is("Kontoauszug12.txt"));
-        assertThat(transaction.getNote(), is("Einrichtung von Handelsmodalitäten 2021"));
+        assertThat(transaction.getNote(), is("Einrichtung von Handelsmodalitäten 2021 (Euronext Amsterdam - EAM)"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance).skip(14)
                         .findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -1390,7 +1395,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2020-08-05T18:46")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(0.01))));
         assertThat(transaction.getSource(), is("Kontoauszug12.txt"));
-        assertThat(transaction.getNote(), is("Einrichtung von Handelsmodalitäten 2020"));
+        assertThat(transaction.getNote(), is("Einrichtung von Handelsmodalitäten 2020 (Euronext Amsterdam - EAM)"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance).skip(15)
                         .findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -1398,7 +1403,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2020-04-01T11:20")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(1.26))));
         assertThat(transaction.getSource(), is("Kontoauszug12.txt"));
-        assertThat(transaction.getNote(), is("Einrichtung von Handelsmodalitäten 2020"));
+        assertThat(transaction.getNote(), is("Einrichtung von Handelsmodalitäten 2020 (Euronext Amsterdam - EAM)"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance).skip(16)
                         .findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -2505,7 +2510,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getCurrencyCode(), is(CurrencyUnit.EUR));
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-09-02T21:29")));
         assertThat(transaction.getSource(), is("Rekeningoverzicht02.txt"));
-        assertThat(transaction.getNote(), is("DEGIRO Aansluitingskosten 2021"));
+        assertThat(transaction.getNote(), is("DEGIRO Aansluitingskosten 2021 (Borsa Italiana S.p.A. - MIL)"));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(2.50))));
     }
 
@@ -3892,6 +3897,93 @@ public class DegiroPDFExtractorTest
     }
 
     @Test
+    public void testAccountStatement_french01()
+    {
+        var extractor = new DegiroPDFExtractor(new Client());
+
+        List<Exception> errors = new ArrayList<>();
+
+        var results = extractor.extract(PDFInputFile.loadTestCase(getClass(), "AccountStatement_french01.txt"), errors);
+
+        assertThat(errors, empty());
+        assertThat(countSecurities(results), is(3L));
+        assertThat(countBuySell(results), is(0L));
+        assertThat(countAccountTransactions(results), is(7L));
+        assertThat(countAccountTransfers(results), is(0L));
+        assertThat(countItemsWithFailureMessage(results), is(0L));
+        assertThat(countSkippedItems(results), is(0L));
+        assertThat(results.size(), is(10));
+        new AssertImportActions().check(results, "EUR");
+
+        // check security
+        assertThat(results, hasItem(security( //
+                        hasIsin("SE0020050417"), hasTicker(null), //
+                        hasName("BOLIDEN AB"), //
+                        hasCurrencyCode("SEK"))));
+
+        assertThat(results, hasItem(security( //
+                        hasIsin("FI0009003727"), hasTicker(null), //
+                        hasName("WARTSILA OYJ ABP"), //
+                        hasCurrencyCode("EUR"))));
+
+        assertThat(results, hasItem(security( //
+                        hasIsin("US02079K3059"), hasTicker(null), //
+                        hasName("ALPHABET INC CLASS A"), //
+                        hasCurrencyCode("USD"))));
+
+        // check dividende transaction
+        assertThat(results, hasItem(dividend( //
+                        hasDate("2026-05-07T07:10"), hasExDate(null), //
+                        hasShares(0.00), //
+                        hasSource("AccountStatement_french01.txt"), //
+                        hasNote(null), //
+                        hasAmount("EUR", 22.59), hasGrossValue("EUR", 32.27), //
+                        hasTaxes("EUR", 9.68), hasFees("EUR", 0.00), //
+                        hasForexGrossValue("SEK", 352.00))));
+
+        assertThat(results, hasItem(dividend( //
+                        hasDate("2026-03-24T07:04"), hasExDate(null), //
+                        hasShares(0.00), //
+                        hasSource("AccountStatement_french01.txt"), //
+                        hasNote(null), //
+                        hasAmount("EUR", 15.92), hasGrossValue("EUR", 24.49), //
+                        hasTaxes("EUR", 8.57), hasFees("EUR", 0.00))));
+
+        assertThat(results, hasItem(dividend( //
+                        hasDate("2025-12-16T07:13"), hasExDate(null), //
+                        hasShares(0.00), //
+                        hasSource("AccountStatement_french01.txt"), //
+                        hasNote(null), //
+                        hasAmount("EUR", 1.06), hasGrossValue("EUR", 1.25), //
+                        hasTaxes("EUR", 0.19), hasFees("EUR", 0.00), //
+                        hasForexGrossValue("USD", 1.47))));
+
+        // check deposit transaction
+        assertThat(results, hasItem(deposit(hasDate("2025-10-08T14:50"), hasAmount("EUR", 9500.00), //
+                        hasSource("AccountStatement_french01.txt"), hasNote("Dépôt flatex"))));
+
+        assertThat(results, hasItem(deposit(hasDate("2025-10-07T21:51"), hasAmount("EUR", 500.00), //
+                        hasSource("AccountStatement_french01.txt"), hasNote("Dépôt flatex"))));
+
+        // check fee transaction
+        assertThat(results, hasItem(fee( //
+                        hasDate("2026-04-07T09:44"), //
+                        hasSource("AccountStatement_french01.txt"), //
+                        hasNote("Frais de connexion aux places boursières 2026 (London Stock Exchange (LSE) - LSE)"), //
+                        hasAmount("EUR", 2.50), hasGrossValue("EUR", 2.50), //
+                        hasTaxes("EUR", 0.00), hasFees("EUR", 0.00))));
+
+        // check fee refund transaction
+        assertThat(results, hasItem(feeRefund( //
+                        hasDate("2026-02-25T16:19"), //
+                        hasSource("AccountStatement_french01.txt"), //
+                        hasNote("Remboursement offre promotionnelle"), //
+                        hasAmount("EUR", 100.00), hasGrossValue("EUR", 100.00), //
+                        hasTaxes("EUR", 0.00), hasFees("EUR", 0.00))));
+    }
+
+
+    @Test
     public void testTransaktionsuebersicht01()
     {
         DegiroPDFExtractor extractor = new DegiroPDFExtractor(new Client());
@@ -5199,7 +5291,7 @@ public class DegiroPDFExtractorTest
         // check security
         Security security = results.stream().filter(SecurityItem.class::isInstance).findFirst()
                         .orElseThrow(IllegalArgumentException::new).getSecurity();
-        assertThat(security.getName(), is("GENERAL ELECTRIC"));
+        assertThat(security.getName(), is("GENERAL ELECTRIC COMPANY COMMON STOCK"));
         assertThat(security.getIsin(), is("US3696043013"));
         assertThat(security.getCurrencyCode(), is(CurrencyUnit.USD));
 
@@ -5501,7 +5593,7 @@ public class DegiroPDFExtractorTest
         // check security
         Security security1 = results.stream().filter(SecurityItem.class::isInstance).findFirst()
                         .orElseThrow(IllegalArgumentException::new).getSecurity();
-        assertThat(security1.getName(), is("GENERAL ELECTRIC"));
+        assertThat(security1.getName(), is("GENERAL ELECTRIC COMPANY COMMON STOCK"));
         assertThat(security1.getIsin(), is("US3696043013"));
         assertThat(security1.getCurrencyCode(), is(CurrencyUnit.USD));
 
@@ -5573,13 +5665,13 @@ public class DegiroPDFExtractorTest
         // check security
         Security security1 = results.stream().filter(SecurityItem.class::isInstance).findFirst()
                         .orElseThrow(IllegalArgumentException::new).getSecurity();
-        assertThat(security1.getName(), is("ISHARES MSCI EUROPE ESG"));
+        assertThat(security1.getName(), is("ISHARES MSCI EUROPE ESG SCREENED UCITS ETF EUR ACC"));
         assertThat(security1.getIsin(), is("IE00BFNM3D14"));
         assertThat(security1.getCurrencyCode(), is(CurrencyUnit.EUR));
 
         Security security2 = results.stream().filter(SecurityItem.class::isInstance).skip(1).findFirst()
                         .orElseThrow(IllegalArgumentException::new).getSecurity();
-        assertThat(security2.getName(), is("ISHARES DJ EUROPE"));
+        assertThat(security2.getName(), is("ISHARES DJ EUROPE SUSTAINABILITY (BLACKROCK ASSET MA..."));
         assertThat(security2.getIsin(), is("IE00B52VJ196"));
         assertThat(security2.getCurrencyCode(), is(CurrencyUnit.EUR));
 
@@ -5903,7 +5995,7 @@ public class DegiroPDFExtractorTest
         // check security
         Security security1 = results.stream().filter(SecurityItem.class::isInstance).findFirst()
                         .orElseThrow(IllegalArgumentException::new).getSecurity();
-        assertThat(security1.getName(), is("ISHARES DJ EUROPE"));
+        assertThat(security1.getName(), is("ISHARES DJ EUROPE SUSTAINABILITY (BLACKROCK ASSET MA..."));
         assertThat(security1.getIsin(), is("IE00B52VJ196"));
         assertThat(security1.getCurrencyCode(), is(CurrencyUnit.EUR));
 
@@ -5915,7 +6007,7 @@ public class DegiroPDFExtractorTest
 
         Security security3 = results.stream().filter(SecurityItem.class::isInstance).skip(2).findFirst()
                         .orElseThrow(IllegalArgumentException::new).getSecurity();
-        assertThat(security3.getName(), is("ISHARES MSCI EUROPE ESG"));
+        assertThat(security3.getName(), is("ISHARES MSCI EUROPE ESG SCREENED UCITS ETF EUR ACC"));
         assertThat(security3.getIsin(), is("IE00BFNM3D14"));
         assertThat(security3.getCurrencyCode(), is(CurrencyUnit.EUR));
 
@@ -5957,7 +6049,7 @@ public class DegiroPDFExtractorTest
 
         Security security10 = results.stream().filter(SecurityItem.class::isInstance).skip(9).findFirst()
                         .orElseThrow(IllegalArgumentException::new).getSecurity();
-        assertThat(security10.getName(), is("ETF ISHARES S&P 500 CHF"));
+        assertThat(security10.getName(), is("ETF ISHARES S&P 500 CHF HEDGED (ISHARES)"));
         assertThat(security10.getIsin(), is("IE00B88DZ566"));
         assertThat(security10.getCurrencyCode(), is("CHF"));
 
@@ -5975,7 +6067,7 @@ public class DegiroPDFExtractorTest
 
         Security security13 = results.stream().filter(SecurityItem.class::isInstance).skip(12).findFirst()
                         .orElseThrow(IllegalArgumentException::new).getSecurity();
-        assertThat(security13.getName(), is("LYXOR UCITS ETF S&P500"));
+        assertThat(security13.getName(), is("LYXOR UCITS ETF S&P500 VIX FU EN ROL LUX"));
         assertThat(security13.getIsin(), is("LU0832435464"));
         assertThat(security13.getCurrencyCode(), is(CurrencyUnit.EUR));
 
@@ -5993,7 +6085,7 @@ public class DegiroPDFExtractorTest
 
         Security security16 = results.stream().filter(SecurityItem.class::isInstance).skip(16).findFirst()
                         .orElseThrow(IllegalArgumentException::new).getSecurity();
-        assertThat(security16.getName(), is("CSAM ISHARES SPI (CH)"));
+        assertThat(security16.getName(), is("CSAM ISHARES SPI (CH) (CREDIT SUISSE ASSET MANAGEMENT)"));
         assertThat(security16.getIsin(), is("CH0237935652"));
         assertThat(security16.getCurrencyCode(), is("CHF"));
 
@@ -6240,7 +6332,7 @@ public class DegiroPDFExtractorTest
 
         assertThat(results, hasItem(security( //
                         hasIsin("DE000A0D8Q49"), hasTicker(null), //
-                        hasName("ISHARES DOW JONES U.S."), //
+                        hasName("ISHARES DOW JONES U.S. SELECT DIVIDEND UCITS (DE) ETF"), //
                         hasCurrencyCode("EUR"))));
 
         assertThat(results, hasItem(security( //
@@ -6798,7 +6890,7 @@ public class DegiroPDFExtractorTest
         // check security
         Security security = results.stream().filter(SecurityItem.class::isInstance).findFirst()
                         .orElseThrow(IllegalArgumentException::new).getSecurity();
-        assertThat(security.getName(), is("LUMINAR TECHNOLOGIES"));
+        assertThat(security.getName(), is("LUMINAR TECHNOLOGIES INC. - CLASS A COMMON STOCK"));
         assertThat(security.getIsin(), is("US5504241051"));
         assertThat(security.getCurrencyCode(), is(CurrencyUnit.USD));
 
@@ -7236,7 +7328,7 @@ public class DegiroPDFExtractorTest
         // check security
         assertThat(results, hasItem(security( //
                         hasIsin("JE00B1VS3333"), hasTicker(null), //
-                        hasName("WISDOMTREE PHYSICAL"), //
+                        hasName("WISDOMTREE PHYSICAL SILVER INDIVIDUAL SECURITIES ETC"), //
                         hasCurrencyCode("EUR"))));
 
         assertThat(results, hasItem(security( //
@@ -7291,7 +7383,7 @@ public class DegiroPDFExtractorTest
 
         assertThat(results, hasItem(security( //
                         hasIsin("US18539C2044"), hasTicker(null), //
-                        hasName("CLEARWAY ENERGY INC"), //
+                        hasName("CLEARWAY ENERGY INC CLASS C"), //
                         hasCurrencyCode("USD"))));
 
         assertThat(results, hasItem(security( //
@@ -8193,7 +8285,7 @@ public class DegiroPDFExtractorTest
         // check security
         Security security = results.stream().filter(SecurityItem.class::isInstance).findFirst()
                         .orElseThrow(IllegalArgumentException::new).getSecurity();
-        assertThat(security.getName(), is("APHRIA INC. - COMMON"));
+        assertThat(security.getName(), is("APHRIA INC. - COMMON SHARES"));
         assertThat(security.getIsin(), is("CA03765K1049"));
         assertThat(security.getCurrencyCode(), is(CurrencyUnit.USD));
 
@@ -8432,7 +8524,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-10-28T08:50")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(200.00))));
         assertThat(transaction.getSource(), is("EstrattoConto01.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance).skip(1)
                         .findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8440,7 +8532,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-09-29T08:50")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(200.00))));
         assertThat(transaction.getSource(), is("EstrattoConto01.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance).skip(2)
                         .findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8448,7 +8540,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-09-20T08:50")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(300.00))));
         assertThat(transaction.getSource(), is("EstrattoConto01.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance).skip(3)
                         .findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8521,14 +8613,14 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2022-10-12T10:50")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(6000.00))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(1).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2022-10-11T10:50")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(3000.00))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(2).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8536,14 +8628,14 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2022-08-09T10:51")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(1000.00))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(3).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2022-08-05T11:00")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(1000.00))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(4).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8551,7 +8643,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2022-07-12T10:50")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(1750.00))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(5).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8559,7 +8651,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2022-05-13T08:50")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(2400.00))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(6).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8567,7 +8659,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2022-02-25T09:20")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(1700.00))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(7).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8575,7 +8667,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2022-01-11T09:00")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(1500.00))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(8).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8583,7 +8675,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-11-12T08:50")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(1300.00))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(9).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8591,7 +8683,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-11-10T08:50")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(2200.00))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(10).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8599,7 +8691,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-09-29T08:50")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(2500.00))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(11).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8607,7 +8699,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-08-12T08:50")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(4600.00))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(12).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8615,7 +8707,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-08-06T08:50")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(4032.40))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(13).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8623,7 +8715,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-05-06T08:50")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(4253.00))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(14).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8631,7 +8723,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-04-01T08:50")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(4253.00))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(15).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8639,7 +8731,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-02-23T08:50")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(3319.00))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(16).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8647,7 +8739,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-01-21T08:50")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(1197.00))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(17).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8655,7 +8747,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-01-20T08:50")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(7765.00))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(18).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -8663,7 +8755,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-01-08T09:00")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(4.00))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("Deposito"));
+        assertThat(transaction.getNote(), is("Deposito flatex"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .skip(19).findFirst().orElseThrow(IllegalArgumentException::new).getSubject();
@@ -9015,7 +9107,7 @@ public class DegiroPDFExtractorTest
         assertThat(transaction.getDateTime(), is(LocalDateTime.parse("2021-01-31T13:15")));
         assertThat(transaction.getMonetaryAmount(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(2.50))));
         assertThat(transaction.getSource(), is("EstrattoConto02.txt"));
-        assertThat(transaction.getNote(), is("DEGIRO Costi di connessione 2021"));
+        assertThat(transaction.getNote(), is("DEGIRO Costi di connessione 2021 (New York Stock Exchange - NSY)"));
 
         transaction = (AccountTransaction) results.stream().filter(TransactionItem.class::isInstance)
                         .collect(Collectors.toList()).get(48).getSubject();
@@ -9097,7 +9189,7 @@ public class DegiroPDFExtractorTest
         // check security
         Security security = results.stream().filter(SecurityItem.class::isInstance).findFirst()
                         .orElseThrow(IllegalArgumentException::new).getSecurity();
-        assertThat(security.getName(), is("VANGUARD FTSE ALL-"));
+        assertThat(security.getName(), is("VANGUARD FTSE ALL- WORLD UCITS ETF - (USD) ACCUMULATING"));
         assertThat(security.getIsin(), is("IE00BK5BQT80"));
         assertThat(security.getCurrencyCode(), is(CurrencyUnit.EUR));
 
@@ -9382,7 +9474,7 @@ public class DegiroPDFExtractorTest
 
         assertThat(results, hasItem(security( //
                         hasIsin("IE0002PG6CA6"), hasTicker(null), //
-                        hasName("VANECK RARE EARTH AND"), //
+                        hasName("VANECK RARE EARTH AND STRATEGIC METALS UCITS ETF"), //
                         hasCurrencyCode("EUR"))));
 
         assertThat(results, hasItem(security( //
@@ -9392,12 +9484,12 @@ public class DegiroPDFExtractorTest
 
         assertThat(results, hasItem(security( //
                         hasIsin("FR0000121014"), hasTicker(null), //
-                        hasName("LVMH MOET HENNESSY"), //
+                        hasName("LVMH MOET HENNESSY LOUIS VUITTON SE"), //
                         hasCurrencyCode("EUR"))));
 
         assertThat(results, hasItem(security( //
                         hasIsin("LU1829221024"), hasTicker(null), //
-                        hasName("AMUNDI NASDAQ-100 II UCITS"), //
+                        hasName("AMUNDI NASDAQ-100 II UCITS ETF ACC"), //
                         hasCurrencyCode("EUR"))));
 
         assertThat(results, hasItem(security( //
@@ -9407,7 +9499,7 @@ public class DegiroPDFExtractorTest
 
         assertThat(results, hasItem(security( //
                         hasIsin("IE000I8KRLL9"), hasTicker(null), //
-                        hasName("ISHARES MSCI GLOBAL"), //
+                        hasName("ISHARES MSCI GLOBAL SEMICONDUCTORS UCITS ETF"), //
                         hasCurrencyCode("EUR"))));
 
         assertThat(results, hasItem(security( //
@@ -9422,7 +9514,7 @@ public class DegiroPDFExtractorTest
 
         assertThat(results, hasItem(security( //
                         hasIsin("IE00B0M63516"), hasTicker(null), //
-                        hasName("ISHARES MSCI BRAZIL UCITS"), //
+                        hasName("ISHARES MSCI BRAZIL UCITS ETF USD (DIST)"), //
                         hasCurrencyCode("EUR"))));
 
         assertThat(results, hasItem(security( //
@@ -9437,17 +9529,17 @@ public class DegiroPDFExtractorTest
 
         assertThat(results, hasItem(security( //
                         hasIsin("US0404132054"), hasTicker(null), //
-                        hasName("ARISTA NETWORKS  INC."), //
+                        hasName("ARISTA NETWORKS  INC. COMMON STOCK"), //
                         hasCurrencyCode("USD"))));
 
         assertThat(results, hasItem(security( //
                         hasIsin("IE00BTJRMP35"), hasTicker(null), //
-                        hasName("XTRACKERS MSCI"), //
+                        hasName("XTRACKERS MSCI EMERGING MARKETS UCITS ETF 1C"), //
                         hasCurrencyCode("EUR"))));
 
         assertThat(results, hasItem(security( //
                         hasIsin("LU1841731745"), hasTicker(null), //
-                        hasName("AMUNDI MSCI CHINA UCITS"), //
+                        hasName("AMUNDI MSCI CHINA UCITS ETF ACC"), //
                         hasCurrencyCode("EUR"))));
 
         assertThat(results, hasItem(security( //
@@ -9462,7 +9554,7 @@ public class DegiroPDFExtractorTest
 
         assertThat(results, hasItem(security( //
                         hasIsin("IE00BZCQB185"), hasTicker(null), //
-                        hasName("ISHARES MSCI INDIA UCITS"), //
+                        hasName("ISHARES MSCI INDIA UCITS ETF USD ACC (EUR)"), //
                         hasCurrencyCode("EUR"))));
 
         assertThat(results, hasItem(security( //
@@ -9507,7 +9599,7 @@ public class DegiroPDFExtractorTest
 
         assertThat(results, hasItem(security( //
                         hasIsin("IE00B3WJKG14"), hasTicker(null), //
-                        hasName("ISHARES S&P 500 INF TECH"), //
+                        hasName("ISHARES S&P 500 INF TECH SECTOR UCITS ETF USD(ACC)"), //
                         hasCurrencyCode("EUR"))));
 
         assertThat(results, hasItem(security( //
@@ -9582,12 +9674,12 @@ public class DegiroPDFExtractorTest
 
         assertThat(results, hasItem(security( //
                         hasIsin("US8740391003"), hasTicker(null), //
-                        hasName("ADR ON TAIWAN"), //
+                        hasName("ADR ON TAIWAN SEMICONDUCTOR MANUFACTURING CO"), //
                         hasCurrencyCode("USD"))));
 
         assertThat(results, hasItem(security( //
                         hasIsin("US88579Y1010"), hasTicker(null), //
-                        hasName("3M COMPANY COMMON"), //
+                        hasName("3M COMPANY COMMON STOC"), //
                         hasCurrencyCode("USD"))));
 
         assertThat(results, hasItem(security( //
@@ -9597,7 +9689,7 @@ public class DegiroPDFExtractorTest
 
         assertThat(results, hasItem(security( //
                         hasIsin("CH0210483332"), hasTicker(null), //
-                        hasName("COMPAGNIE FINANCIERE"), //
+                        hasName("COMPAGNIE FINANCIERE RICHEMONT SA"), //
                         hasCurrencyCode("CHF"))));
 
         assertThat(results, hasItem(security( //
@@ -9622,7 +9714,7 @@ public class DegiroPDFExtractorTest
 
         assertThat(results, hasItem(security( //
                         hasIsin("FR001400GG91"), hasTicker(null), //
-                        hasName("GLOBAL BIOENERGIES - NON"), //
+                        hasName("GLOBAL BIOENERGIES - NON TRADEABLE"), //
                         hasCurrencyCode("EUR"))));
 
         assertThat(results, hasItem(security( //
@@ -11621,7 +11713,7 @@ public class DegiroPDFExtractorTest
 
         Security security40 = results.stream().filter(SecurityItem.class::isInstance).skip(40).findFirst()
                         .orElseThrow(IllegalArgumentException::new).getSecurity();
-        assertThat(security40.getName(), is("SOLARWINDS CORPORATION"));
+        assertThat(security40.getName(), is("SOLARWINDS CORPORATION COMMON STOCK"));
         assertThat(security40.getIsin(), is("US83417Q2049"));
         assertThat(security40.getCurrencyCode(), is(CurrencyUnit.USD));
 
@@ -13010,7 +13102,7 @@ public class DegiroPDFExtractorTest
 
         Security security2 = results.stream().filter(SecurityItem.class::isInstance).skip(1).findFirst()
                         .orElseThrow(IllegalArgumentException::new).getSecurity();
-        assertThat(security2.getName(), is("VANGUARD FTSE ALL-"));
+        assertThat(security2.getName(), is("VANGUARD FTSE ALL- WORLD UCITS ETF - (USD) ACCUMULATING"));
         assertNull(security2.getWkn());
         assertNull(security2.getTickerSymbol());
         assertThat(security2.getIsin(), is("IE00BK5BQT80"));
