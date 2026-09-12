@@ -202,6 +202,13 @@ public class LiechtensteinischeLandesbankAGPDFExtractor extends AbstractPDFExtra
                         .assign((t, v) -> t.setDateTime(asDate(v.get("date"))))
 
                         // @formatter:off
+                        // Ex-Datum 06.11.2023
+                        // @formatter:on
+                        .section("exDate").optional() //
+                        .match("^Ex\\-Datum (?<exDate>[\\d]{2}\\.[\\d]{2}\\.[\\d]{4})$") //
+                        .assign((t, v) -> t.setExDate(asDate(v.get("exDate"))))
+
+                        // @formatter:off
                         // Zu Ihren Gunsten Valuta 20. November 2023 CHF 5.65
                         // @formatter:on
                         .section("currency", "amount") //

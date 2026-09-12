@@ -6,6 +6,7 @@ import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.dividend;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.hasAmount;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.hasCurrencyCode;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.hasDate;
+import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.hasExDate;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.hasFees;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.hasForexGrossValue;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.hasGrossValue;
@@ -440,7 +441,8 @@ public class LiechtensteinischeLandesbankAGPDFExtractorTest
 
         // check dividends transaction
         assertThat(results, hasItem(dividend( //
-                        hasDate("2023-11-20T00:00"), hasShares(25.114744), //
+                        hasDate("2023-11-20T00:00"), hasExDate("2023-11-06T00:00"), //
+                        hasShares(25.114744), //
                         hasSource("Dividende01.txt"), //
                         hasNote("Auftragsnummer 623950393"), //
                         hasAmount("CHF", 5.65), hasGrossValue("CHF", 6.65), //
@@ -476,7 +478,8 @@ public class LiechtensteinischeLandesbankAGPDFExtractorTest
 
         // check dividends transaction
         assertThat(results, hasItem(dividend( //
-                        hasDate("2023-11-20T00:00"), hasShares(25.114744), //
+                        hasDate("2023-11-20T00:00"), hasExDate("2023-11-06T00:00"), //
+                        hasShares(25.114744), //
                         hasSource("Dividende01.txt"), //
                         hasNote("Auftragsnummer 623950393"), //
                         hasAmount("CHF", 5.65), hasGrossValue("CHF", 6.65), //
@@ -517,7 +520,8 @@ public class LiechtensteinischeLandesbankAGPDFExtractorTest
 
         // check dividends transaction
         assertThat(results, hasItem(dividend( //
-                        hasDate("2023-09-18T00:00"), hasShares(17.943232), //
+                        hasDate("2023-09-18T00:00"), hasExDate("2023-08-10T00:00"), //
+                        hasShares(17.943232), //
                         hasSource("Dividende02.txt"), //
                         hasNote("Auftragsnummer XXXXXXXXX"), //
                         hasAmount("CHF", 1.39), hasGrossValue("CHF", 1.39), //
@@ -553,7 +557,8 @@ public class LiechtensteinischeLandesbankAGPDFExtractorTest
 
         // check dividends transaction
         assertThat(results, hasItem(dividend( //
-                        hasDate("2023-09-18T00:00"), hasShares(17.943232), //
+                        hasDate("2023-09-18T00:00"), hasExDate("2023-08-10T00:00"), //
+                        hasShares(17.943232), //
                         hasSource("Dividende02.txt"), //
                         hasNote("Auftragsnummer XXXXXXXXX"), //
                         hasAmount("CHF", 1.39), hasGrossValue("CHF", 1.39), //
