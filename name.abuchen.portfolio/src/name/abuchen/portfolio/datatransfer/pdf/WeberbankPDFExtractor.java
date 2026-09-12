@@ -88,11 +88,17 @@ public class WeberbankPDFExtractor extends AbstractPDFExtractor
                                         // NK-ANL. 2020(30)
                                         // @formatter:on
                                         section -> section //
-                                                        .attributes("currency", "name", "isin", "wkn", "nameContinued") //
+                                                        .attributes("currency", "name", "isin", "wkn", "name1") //
                                                         .find("Nominale Wertpapierbezeichnung ISIN \\(WKN\\)") //
                                                         .match("^(?<currency>[A-Z]{3}) [\\.,\\d]+ (?<name>.*) (?<isin>[A-Z]{2}[A-Z0-9]{9}[0-9]) \\((?<wkn>[A-Z0-9]{6})\\)$") //
-                                                        .match("^(?<nameContinued>.*)$") //
-                                                        .assign((t, v) -> t.setSecurity(getOrCreateSecurity(v))))
+                                                        .match("^(?<name1>.*)$") //
+                                                        .assign((t, v) -> {
+                                                            if (!v.get("name1").startsWith("Handels-/Ausführungsplatz"))
+                                                                v.put("name", trim(v.get("name")) + " "
+                                                                                + trim(v.get("name1")));
+
+                                                            t.setSecurity(getOrCreateSecurity(v));
+                                                        }))
 
                         // @formatter:off
                         // Stück 4.440 NEL ASA NO0010081235 (A0B733)
@@ -118,6 +124,7 @@ public class WeberbankPDFExtractor extends AbstractPDFExtractor
                             // @formatter:off
                             // Handshake for tax lost adjustment transaction
                             // @formatter:on
+                            context.put("date", v.get("date"));
                             context.put("time", v.get("time"));
 
                             t.setDate(asDate(v.get("date"), v.get("time")));
@@ -176,6 +183,20 @@ public class WeberbankPDFExtractor extends AbstractPDFExtractor
                         .match("^(?<note>Limit .*)$") //
                         .assign((t, v) -> t.setNote(concatenate(t.getNote(), trim(v.get("note")), " | ")))
 
+                        // @formatter:off
+                        // When purchasing bonds, the accrued interest is part of the purchase price.
+                        // It is kept in the note because it is what triggers the tax adjustment.
+                        //
+                        // Stückzinsen für 232 Tage per 07.04.2026 1.111,28- EUR
+                        // @formatter:on
+                        .section("note1", "note2", "note3").optional() //
+                        .match("^(?<note1>St.ckzinsen f.r [\\d]+ Tage) per [\\d]{2}\\.[\\d]{2}\\.[\\d]{4} (?<note2>[\\.,\\d]+)\\- (?<note3>[A-Z]{3})$") //
+                        .assign((t, v) -> {
+                            t.setNote(concatenate(t.getNote(), v.get("note1"), " | "));
+                            t.setNote(concatenate(t.getNote(), v.get("note2"), ": "));
+                            t.setNote(concatenate(t.getNote(), v.get("note3"), " "));
+                        })
+
                         .conclude(ExtractorUtils.fixGrossValueBuySell())
 
                         .wrap(t -> {
@@ -220,23 +241,35 @@ public class WeberbankPDFExtractor extends AbstractPDFExtractor
                                         // Zahlbarkeitstag 13.08.2020 Dividende pro Stück 0,82 USD
                                         // @formatter:on
                                         section -> section //
-                                                        .attributes("name", "isin", "wkn", "nameContinued", "currency") //
+                                                        .attributes("name", "isin", "wkn", "name1", "currency") //
                                                         .find("Nominale Wertpapierbezeichnung ISIN \\(WKN\\)") //
                                                         .match("^St.ck [\\.,\\d]+ (?<name>.*) (?<isin>[A-Z]{2}[A-Z0-9]{9}[0-9]) \\((?<wkn>[A-Z0-9]{6})\\)$") //
-                                                        .match("^(?<nameContinued>.*)$") //
+                                                        .match("^(?<name1>.*)$") //
                                                         .match("^Zahlbarkeitstag .* [\\.,\\d]+ (?<currency>[A-Z]{3})$") //
-                                                        .assign((t, v) -> t.setSecurity(getOrCreateSecurity(v))),
+                                                        .assign((t, v) -> {
+                                                            if (!v.get("name1").startsWith("Zahlbarkeitstag"))
+                                                                v.put("name", trim(v.get("name")) + " "
+                                                                                + trim(v.get("name1")));
+
+                                                            t.setSecurity(getOrCreateSecurity(v));
+                                                        }),
                                         // @formatter:off
                                         // Nominale Wertpapierbezeichnung ISIN (WKN)
                                         // NOK 1.425.000,00 NORWEGEN, KÖNIGREICH NO0010875230 (A28TXS)
                                         // NK-ANL. 2020(30)
                                         // @formatter:on
                                         section -> section //
-                                                        .attributes("currency", "name", "isin", "wkn", "nameContinued") //
+                                                        .attributes("currency", "name", "isin", "wkn", "name1") //
                                                         .find("Nominale Wertpapierbezeichnung ISIN \\(WKN\\)") //
                                                         .match("^(?<currency>[A-Z]{3}) [\\.,\\d]+ (?<name>.*) (?<isin>[A-Z]{2}[A-Z0-9]{9}[0-9]) \\((?<wkn>[A-Z0-9]{6})\\)$") //
-                                                        .match("^(?<nameContinued>.*)$") //
-                                                        .assign((t, v) -> t.setSecurity(getOrCreateSecurity(v))))
+                                                        .match("^(?<name1>.*)$") //
+                                                        .assign((t, v) -> {
+                                                            if (!v.get("name1").startsWith("Zahlbarkeitstag"))
+                                                                v.put("name", trim(v.get("name")) + " "
+                                                                                + trim(v.get("name1")));
+
+                                                            t.setSecurity(getOrCreateSecurity(v));
+                                                        }))
 
                         // @formatter:off
                         // Stück 107 APPLE INC. US0378331005 (865985)
@@ -333,18 +366,20 @@ public class WeberbankPDFExtractor extends AbstractPDFExtractor
                         .subject(() -> new AccountTransaction(AccountTransaction.Type.TAX_REFUND))
 
                         // @formatter:off
+                        // Only a credit ("zu Gunsten") is a tax refund. A charge ("zu Lasten") is a
+                        // different transaction type and is deliberately not imported.
+                        //
                         // Ausmachender Betrag 558,03 EUR
                         // Den Gegenwert buchen wir mit Valuta 18.06.2026 zu Gunsten des Kontos xxxxxxxxxx
                         // @formatter:on
-                        .section("amount", "currency", "date").optional() //
+                        .section("amount", "currency").optional() //
                         .match("^Ausmachender Betrag (?<amount>[\\.,\\d]+) (?<currency>[A-Z]{3})$") //
-                        .match("^Den Gegenwert buchen wir mit Valuta (?<date>[\\d]{2}\\.[\\d]{2}\\.[\\d]{4}) .*$") //
+                        .match("^Den Gegenwert buchen wir mit Valuta [\\d]{2}\\.[\\d]{2}\\.[\\d]{4} zu Gunsten .*$") //
                         .assign((t, v) -> {
-                            // Date of the settlement, time of the trade
-                            if (context.get("time") != null)
-                                t.setDateTime(asDate(v.get("date"), context.get("time")));
-                            else
-                                t.setDateTime(asDate(v.get("date")));
+                            // Date of the trade, not of the settlement a couple
+                            // of days later
+                            if (context.get("date") != null && context.get("time") != null)
+                                t.setDateTime(asDate(context.get("date"), context.get("time")));
 
                             if (context.get("shares") != null)
                                 t.setShares(Long.parseLong(context.get("shares")));
@@ -370,7 +405,7 @@ public class WeberbankPDFExtractor extends AbstractPDFExtractor
                         })
 
                         .wrap(t -> {
-                            if (t.getCurrencyCode() != null && t.getAmount() != 0)
+                            if (t.getDateTime() != null && t.getCurrencyCode() != null && t.getAmount() != 0)
                                 return new TransactionItem(t);
 
                             return null;
@@ -395,9 +430,11 @@ public class WeberbankPDFExtractor extends AbstractPDFExtractor
                         .match("^Solidarit.tszuschlag [\\.,\\d]+[\\s]*% auf [\\.,\\d]+ [A-Z]{3} (?<tax>[\\.,\\d]+)\\- (?<currency>[A-Z]{3})$") //
                         .assign((t, v) -> processTaxEntries(t, v, type))
 
-                        // @formatter:off
-                        // Kirchensteuer 9 % auf 7,40 EUR 0,66- EUR
-                        // @formatter:on
+                        // No test document available. The line shape follows
+                        // the
+                        // Kapitalertragsteuer and Solidaritätszuschlag lines of
+                        // the same
+                        // statement family, it is not copied from a statement.
                         .section("tax", "currency").optional() //
                         .match("^Kirchensteuer [\\.,\\d]+[\\s]*% auf [\\.,\\d]+ [A-Z]{3} (?<tax>[\\.,\\d]+)\\- (?<currency>[A-Z]{3})$") //
                         .assign((t, v) -> processTaxEntries(t, v, type))

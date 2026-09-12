@@ -108,7 +108,7 @@ public class WeberbankPDFExtractorTest
         assertThat(results, hasItem(purchase( //
                         hasDate("2026-04-02T10:48:46"), hasShares(14250.00), //
                         hasSource("Kauf02.txt"), //
-                        hasNote("Auftragsnummer 505279/90.00 | Limit 88,50 %"), //
+                        hasNote("Auftragsnummer 505279/90.00 | Limit 88,50 % | Stückzinsen für 232 Tage: 1.111,28 EUR"), //
                         hasAmount("EUR", 113295.54), hasGrossValue("EUR", 113295.54), //
                         hasForexGrossValue("NOK", 1269703.12), //
                         hasTaxes("EUR", 0.00), hasFees("EUR", 0.00))));
@@ -117,7 +117,7 @@ public class WeberbankPDFExtractorTest
         assertThat(results, hasItem(taxRefund( //
                         hasDate("2026-04-02T10:48:46"), hasShares(14250.00), //
                         hasSource("Kauf02.txt"), //
-                        hasNote("Auftragsnummer 505279/90.00 | Limit 88,50 %"), //
+                        hasNote("Auftragsnummer 505279/90.00 | Limit 88,50 % | Stückzinsen für 232 Tage: 1.111,28 EUR"), //
                         hasAmount("EUR", 293.10), hasGrossValue("EUR", 293.10), //
                         hasForexGrossValue("NOK", 3284.77), //
                         hasTaxes("EUR", 0.00), hasFees("EUR", 0.00))));
@@ -153,7 +153,7 @@ public class WeberbankPDFExtractorTest
         assertThat(results, hasItem(purchase( //
                         hasDate("2026-04-02T10:48:46"), hasShares(14250.00), //
                         hasSource("Kauf02.txt"), //
-                        hasNote("Auftragsnummer 505279/90.00 | Limit 88,50 %"), //
+                        hasNote("Auftragsnummer 505279/90.00 | Limit 88,50 % | Stückzinsen für 232 Tage: 1.111,28 EUR"), //
                         hasAmount("EUR", 113295.54), hasGrossValue("EUR", 113295.54), //
                         hasTaxes("EUR", 0.00), hasFees("EUR", 0.00))));
 
@@ -161,7 +161,7 @@ public class WeberbankPDFExtractorTest
         assertThat(results, hasItem(taxRefund( //
                         hasDate("2026-04-02T10:48:46"), hasShares(14250.00), //
                         hasSource("Kauf02.txt"), //
-                        hasNote("Auftragsnummer 505279/90.00 | Limit 88,50 %"), //
+                        hasNote("Auftragsnummer 505279/90.00 | Limit 88,50 % | Stückzinsen für 232 Tage: 1.111,28 EUR"), //
                         hasAmount("EUR", 293.10), hasGrossValue("EUR", 293.10), //
                         hasTaxes("EUR", 0.00), hasFees("EUR", 0.00))));
     }
