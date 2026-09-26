@@ -17,6 +17,8 @@ import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.hasTicker;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.hasWkn;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.inboundDelivery;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.purchase;
+import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.removal;
+import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.sale;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.security;
 import static name.abuchen.portfolio.datatransfer.ExtractorTestUtilities.countAccountTransactions;
 import static name.abuchen.portfolio.datatransfer.ExtractorTestUtilities.countAccountTransfers;
@@ -139,12 +141,12 @@ public class MorganStanleyPDFExtractorTest
 
         assertThat(errors, empty());
         assertThat(countSecurities(results), is(1L));
-        assertThat(countBuySell(results), is(0L));
-        assertThat(countAccountTransactions(results), is(1L));
+        assertThat(countBuySell(results), is(1L));
+        assertThat(countAccountTransactions(results), is(2L));
         assertThat(countAccountTransfers(results), is(0L));
         assertThat(countItemsWithFailureMessage(results), is(0L));
         assertThat(countSkippedItems(results), is(0L));
-        assertThat(results.size(), is(2));
+        assertThat(results.size(), is(4));
         new AssertImportActions().check(results, "USD");
 
         // check security
@@ -155,11 +157,25 @@ public class MorganStanleyPDFExtractorTest
 
         // check delivery inbound (Einlieferung) transaction
         assertThat(results, hasItem(inboundDelivery( //
-                        hasDate("2015-12-01T00:00"), hasShares(4.00), //
+                        hasDate("2015-12-01T00:00"), hasShares(7.00), //
                         hasSource("Release01.txt"), //
                         hasNote("Award ID: 88382462"), //
-                        hasAmount("USD", 562.10), hasGrossValue("USD", 562.10), //
+                        hasAmount("USD", 983.68), hasGrossValue("USD", 983.68), //
                         hasTaxes("USD", 0.00), hasFees("USD", 0.00))));
+
+        // check sell-to-cover transaction
+        assertThat(results, hasItem(sale( //
+                        hasDate("2015-12-01T00:00"), hasShares(3.00), //
+                        hasSource("Release01.txt"), //
+                        hasNote("Award ID: 88382462"), //
+                        hasAmount("USD", 421.58), hasGrossValue("USD", 421.58), //
+                        hasTaxes("USD", 0.00), hasFees("USD", 0.00))));
+
+        // check removal of the withheld taxes
+        assertThat(results, hasItem(removal( //
+                        hasDate("2015-12-01"), hasAmount("USD", 354.12), //
+                        hasSource("Release01.txt"), //
+                        hasNote("Tax withheld to cover | Award ID: 88382462"))));
     }
 
     @Test
@@ -173,12 +189,12 @@ public class MorganStanleyPDFExtractorTest
 
         assertThat(errors, empty());
         assertThat(countSecurities(results), is(1L));
-        assertThat(countBuySell(results), is(0L));
-        assertThat(countAccountTransactions(results), is(1L));
+        assertThat(countBuySell(results), is(1L));
+        assertThat(countAccountTransactions(results), is(2L));
         assertThat(countAccountTransfers(results), is(0L));
         assertThat(countItemsWithFailureMessage(results), is(0L));
         assertThat(countSkippedItems(results), is(0L));
-        assertThat(results.size(), is(2));
+        assertThat(results.size(), is(4));
         new AssertImportActions().check(results, "USD");
 
         // check security
@@ -189,10 +205,280 @@ public class MorganStanleyPDFExtractorTest
 
         // check delivery inbound (Einlieferung) transaction
         assertThat(results, hasItem(inboundDelivery( //
+                        hasDate("2022-05-01T00:00"), hasShares(2.00), //
+                        hasSource("Release02.txt"), //
+                        hasNote("Award ID: 80824152"), //
+                        hasAmount("USD", 267.53), hasGrossValue("USD", 267.53), //
+                        hasTaxes("USD", 0.00), hasFees("USD", 0.00))));
+
+        // check sell-to-cover transaction
+        assertThat(results, hasItem(sale( //
                         hasDate("2022-05-01T00:00"), hasShares(1.00), //
                         hasSource("Release02.txt"), //
                         hasNote("Award ID: 80824152"), //
                         hasAmount("USD", 133.77), hasGrossValue("USD", 133.77), //
                         hasTaxes("USD", 0.00), hasFees("USD", 0.00))));
+
+        // check removal of the withheld taxes
+        assertThat(results, hasItem(removal( //
+                        hasDate("2022-05-01"), hasAmount("USD", 133.77), //
+                        hasSource("Release02.txt"), //
+                        hasNote("Tax withheld to cover | Award ID: 80824152"))));
+    }
+
+    @Test
+    public void testRelease03()
+    {
+        var extractor = new MorganStanleyPDFExtractor(new Client());
+
+        List<Exception> errors = new ArrayList<>();
+
+        var results = extractor.extract(PDFInputFile.loadTestCase(getClass(), "Release03.txt"), errors);
+
+        assertThat(errors, empty());
+        assertThat(countSecurities(results), is(1L));
+        assertThat(countBuySell(results), is(1L));
+        assertThat(countAccountTransactions(results), is(2L));
+        assertThat(countAccountTransfers(results), is(0L));
+        assertThat(countItemsWithFailureMessage(results), is(0L));
+        assertThat(countSkippedItems(results), is(0L));
+        assertThat(results.size(), is(4));
+        new AssertImportActions().check(results, "USD");
+
+        // check security
+        assertThat(results, hasItem(security( //
+                        hasIsin(null), hasWkn("459200101"), hasTicker("IBM"), //
+                        hasName("INTL BUSINESS MACHINES CORP"), //
+                        hasCurrencyCode("USD"))));
+
+        // check delivery inbound (Einlieferung) transaction
+        assertThat(results, hasItem(inboundDelivery( //
+                        hasDate("2026-07-10T00:00"), hasShares(19.00), //
+                        hasSource("Release03.txt"), //
+                        hasNote("Award ID: 1234567A"), //
+                        hasAmount("USD", 5569.57), hasGrossValue("USD", 5569.57), //
+                        hasTaxes("USD", 0.00), hasFees("USD", 0.00))));
+
+        // check sell-to-cover transaction
+        assertThat(results, hasItem(sale( //
+                        hasDate("2026-07-10T00:00"), hasShares(9.00), //
+                        hasSource("Release03.txt"), //
+                        hasNote("Award ID: 1234567A"), //
+                        hasAmount("USD", 2638.22), hasGrossValue("USD", 2638.22), //
+                        hasTaxes("USD", 0.00), hasFees("USD", 0.00))));
+
+        // check removal of the withheld taxes
+        assertThat(results, hasItem(removal( //
+                        hasDate("2026-07-10"), hasAmount("USD", 2638.22), //
+                        hasSource("Release03.txt"), //
+                        hasNote("Tax withheld to cover | Award ID: 1234567A"))));
+    }
+
+    @Test
+    public void testRelease04()
+    {
+        var extractor = new MorganStanleyPDFExtractor(new Client());
+
+        List<Exception> errors = new ArrayList<>();
+
+        var results = extractor.extract(PDFInputFile.loadTestCase(getClass(), "Release04.txt"), errors);
+
+        assertThat(errors, empty());
+        assertThat(countSecurities(results), is(1L));
+        assertThat(countBuySell(results), is(1L));
+        assertThat(countAccountTransactions(results), is(2L));
+        assertThat(countAccountTransfers(results), is(0L));
+        assertThat(countItemsWithFailureMessage(results), is(0L));
+        assertThat(countSkippedItems(results), is(0L));
+        assertThat(results.size(), is(4));
+        new AssertImportActions().check(results, "USD");
+
+        // check security
+        assertThat(results, hasItem(security( //
+                        hasIsin(null), hasWkn("459200101"), hasTicker("IBM"), //
+                        hasName("INTL BUSINESS MACHINES CORP"), //
+                        hasCurrencyCode("USD"))));
+
+        // check delivery inbound (Einlieferung) transaction
+        assertThat(results, hasItem(inboundDelivery( //
+                        hasDate("2025-07-10T00:00"), hasShares(57.00), //
+                        hasSource("Release04.txt"), //
+                        hasNote("Award ID: 12345678"), //
+                        hasAmount("USD", 16276.64), hasGrossValue("USD", 16276.64), //
+                        hasTaxes("USD", 0.00), hasFees("USD", 0.00))));
+
+        // check sell-to-cover transaction
+        assertThat(results, hasItem(sale( //
+                        hasDate("2025-07-10T00:00"), hasShares(26.00), //
+                        hasSource("Release04.txt"), //
+                        hasNote("Award ID: 12345678"), //
+                        hasAmount("USD", 7424.43), hasGrossValue("USD", 7424.43), //
+                        hasTaxes("USD", 0.00), hasFees("USD", 0.00))));
+
+        // check removal of the withheld taxes
+        assertThat(results, hasItem(removal( //
+                        hasDate("2025-07-10"), hasAmount("USD", 7424.43), //
+                        hasSource("Release04.txt"), //
+                        hasNote("Tax withheld to cover | Award ID: 12345678"))));
+    }
+
+    @Test
+    public void testQuarterlyStatement01()
+    {
+        var extractor = new MorganStanleyPDFExtractor(new Client());
+
+        List<Exception> errors = new ArrayList<>();
+
+        var results = extractor.extract(PDFInputFile.loadTestCase(getClass(), "QuarterlyStatement01.txt"), errors);
+
+        assertThat(errors, empty());
+        assertThat(countSecurities(results), is(1L));
+        assertThat(countBuySell(results), is(0L));
+        assertThat(countAccountTransactions(results), is(2L));
+        assertThat(countAccountTransfers(results), is(0L));
+        assertThat(countItemsWithFailureMessage(results), is(0L));
+        assertThat(countSkippedItems(results), is(0L));
+        assertThat(results.size(), is(3));
+        new AssertImportActions().check(results, "USD");
+
+        // check security
+        assertThat(results, hasItem(security( //
+                        hasIsin(null), hasWkn(null), hasTicker(null), //
+                        hasName("INTL BUSINESS MACHINES CORP"), //
+                        hasCurrencyCode("USD"))));
+
+        // check dividends transaction
+        assertThat(results, hasItem(dividend( //
+                        hasDate("2026-03-10T00:00"), hasShares(93.055), //
+                        hasSource("QuarterlyStatement01.txt"), //
+                        hasNote(null), //
+                        hasAmount("USD", 132.88), hasGrossValue("USD", 156.33), //
+                        hasTaxes("USD", 23.45), hasFees("USD", 0.00))));
+
+        // check disbursement of the dividend
+        assertThat(results, hasItem(removal( //
+                        hasDate("2026-03-11"), hasAmount("USD", 132.88), //
+                        hasSource("QuarterlyStatement01.txt"), hasNote(null))));
+    }
+
+    @Test
+    public void testQuarterlyStatement02()
+    {
+        var extractor = new MorganStanleyPDFExtractor(new Client());
+
+        List<Exception> errors = new ArrayList<>();
+
+        var results = extractor.extract(PDFInputFile.loadTestCase(getClass(), "QuarterlyStatement02.txt"), errors);
+
+        assertThat(errors, empty());
+        assertThat(countSecurities(results), is(1L));
+        assertThat(countBuySell(results), is(0L));
+        assertThat(countAccountTransactions(results), is(2L));
+        assertThat(countAccountTransfers(results), is(0L));
+        assertThat(countItemsWithFailureMessage(results), is(0L));
+        assertThat(countSkippedItems(results), is(0L));
+        assertThat(results.size(), is(3));
+        new AssertImportActions().check(results, "USD");
+
+        // check security
+        assertThat(results, hasItem(security( //
+                        hasIsin(null), hasWkn(null), hasTicker(null), //
+                        hasName("INTL BUSINESS MACHINES CORP"), //
+                        hasCurrencyCode("USD"))));
+
+        // check dividends transaction
+        assertThat(results, hasItem(dividend( //
+                        hasDate("2026-06-10T00:00"), hasShares(93.055), //
+                        hasSource("QuarterlyStatement02.txt"), //
+                        hasNote(null), //
+                        hasAmount("USD", 133.67), hasGrossValue("USD", 157.26), //
+                        hasTaxes("USD", 23.59), hasFees("USD", 0.00))));
+
+        // check disbursement of the dividend
+        assertThat(results, hasItem(removal( //
+                        hasDate("2026-06-11"), hasAmount("USD", 133.67), //
+                        hasSource("QuarterlyStatement02.txt"), hasNote(null))));
+    }
+
+    @Test
+    public void testQuarterlyStatement03()
+    {
+        var extractor = new MorganStanleyPDFExtractor(new Client());
+
+        List<Exception> errors = new ArrayList<>();
+
+        var results = extractor.extract(PDFInputFile.loadTestCase(getClass(), "QuarterlyStatement03.txt"), errors);
+
+        assertThat(errors, empty());
+        assertThat(countSecurities(results), is(1L));
+        assertThat(countBuySell(results), is(1L));
+        assertThat(countAccountTransactions(results), is(1L));
+        assertThat(countAccountTransfers(results), is(0L));
+        assertThat(countItemsWithFailureMessage(results), is(0L));
+        assertThat(countSkippedItems(results), is(0L));
+        assertThat(results.size(), is(3));
+        new AssertImportActions().check(results, "USD");
+
+        // check security
+        assertThat(results, hasItem(security( //
+                        hasIsin(null), hasWkn(null), hasTicker(null), //
+                        hasName("INTL BUSINESS MACHINES CORP"), //
+                        hasCurrencyCode("USD"))));
+
+        // check dividends transaction
+        assertThat(results, hasItem(dividend( //
+                        hasDate("2023-03-10T00:00"), hasShares(29.858), //
+                        hasSource("QuarterlyStatement03.txt"), //
+                        hasNote(null), //
+                        hasAmount("USD", 41.88), hasGrossValue("USD", 49.27), //
+                        hasTaxes("USD", 7.39), hasFees("USD", 0.00))));
+
+        // check dividend reinvestment
+        assertThat(results, hasItem(purchase( //
+                        hasDate("2023-03-13T00:00"), hasShares(0.333), //
+                        hasSource("QuarterlyStatement03.txt"), //
+                        hasNote(null), //
+                        hasAmount("USD", 41.88), hasGrossValue("USD", 41.88), //
+                        hasTaxes("USD", 0.00), hasFees("USD", 0.00))));
+    }
+
+    @Test
+    public void testQuarterlyStatement04()
+    {
+        var extractor = new MorganStanleyPDFExtractor(new Client());
+
+        List<Exception> errors = new ArrayList<>();
+
+        var results = extractor.extract(PDFInputFile.loadTestCase(getClass(), "QuarterlyStatement04.txt"), errors);
+
+        assertThat(errors, empty());
+        assertThat(countSecurities(results), is(1L));
+        assertThat(countBuySell(results), is(0L));
+        assertThat(countAccountTransactions(results), is(2L));
+        assertThat(countAccountTransfers(results), is(0L));
+        assertThat(countItemsWithFailureMessage(results), is(0L));
+        assertThat(countSkippedItems(results), is(0L));
+        assertThat(results.size(), is(3));
+        new AssertImportActions().check(results, "USD");
+
+        // check security
+        assertThat(results, hasItem(security( //
+                        hasIsin(null), hasWkn(null), hasTicker(null), //
+                        hasName("INTL BUSINESS MACHINES CORP"), //
+                        hasCurrencyCode("USD"))));
+
+        // check dividends transaction (shares include the release before the
+        // dividend date, the release itself is not imported)
+        assertThat(results, hasItem(dividend( //
+                        hasDate("2025-09-10T00:00"), hasShares(93.055), //
+                        hasSource("QuarterlyStatement04.txt"), //
+                        hasNote(null), //
+                        hasAmount("USD", 132.88), hasGrossValue("USD", 156.33), //
+                        hasTaxes("USD", 23.45), hasFees("USD", 0.00))));
+
+        // check disbursement of the dividend
+        assertThat(results, hasItem(removal( //
+                        hasDate("2025-09-11"), hasAmount("USD", 132.88), //
+                        hasSource("QuarterlyStatement04.txt"), hasNote(null))));
     }
 }
