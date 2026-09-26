@@ -387,7 +387,7 @@ public class MorganStanleyPDFExtractor extends AbstractPDFExtractor
                 // on the same date belongs to the dividend.
                 m = pDividend.matcher(line);
                 if (m.matches())
-                    context.put("dividend_" + m.group("date"), m.group("date"));
+                    context.put(asDividendKey(m.group("date")), m.group("date"));
             }
         });
 
@@ -439,7 +439,7 @@ public class MorganStanleyPDFExtractor extends AbstractPDFExtractor
 
                             // The withholding tax of a dividend credit on the
                             // same date is part of the dividend and is skipped
-                            if (!type.getCurrentContext().containsKey("dividend_" + v.get("date")))
+                            if (!type.getCurrentContext().containsKey(asDividendKey(v.get("date"))))
                             {
                                 t.setSecurity(getOrCreateSecurity(v));
                                 t.setAmount(asAmount(v.get("amount")));
@@ -482,12 +482,22 @@ public class MorganStanleyPDFExtractor extends AbstractPDFExtractor
     }
 
     /**
-     * Dates in the quarterly statement have the format M/d/yy (e.g. 3/10/26).
-     * The US date formatters expect a two-digit month.
+     * Dates in the quarterly statement have the format M/d/yy (e.g. 3/10/26 or
+     * 09/10/22). Month and day are padded to two digits for the US date
+     * formatters.
      */
     private LocalDateTime asStatementDate(String date)
     {
-        return asDate(date.replaceFirst("^([\\d])/", "0$1/"), Locale.US);
+        return asDate(date.replaceAll("(?<![\\d])([\\d])(?=/)", "0$1"), Locale.US);
+    }
+
+    /**
+     * The key of a dividend date in the document context. The date is
+     * normalized, so that e.g. 9/10/22 and 09/10/22 result in the same key.
+     */
+    private String asDividendKey(String date)
+    {
+        return "dividend_" + asStatementDate(date).toLocalDate();
     }
 
     private <T extends Transaction<?>> void addTaxesSectionsTransaction(T transaction, DocumentType type)
