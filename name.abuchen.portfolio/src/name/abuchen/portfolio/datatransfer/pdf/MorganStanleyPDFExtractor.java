@@ -435,10 +435,18 @@ public class MorganStanleyPDFExtractor extends AbstractPDFExtractor
                             t.setAmount(asAmount(v.get("amount")));
                         })
 
-                        .section("tax").optional() //
+                        // @formatter:off
+                        // The block runs until the next dividend credit. Only the withholding tax
+                        // on the date of the dividend credit belongs to the dividend, withholding
+                        // taxes on other dates are booked separately (see taxes block).
+                        // @formatter:on
+                        .section("taxDate", "tax").optional().multipleTimes() //
                         .documentContext("currency") //
-                        .match("^[\\d]{1,2}/[\\d]{1,2}/[\\d]{2} Withholding Tax \\((?<tax>[\\.,\\d]+)\\)$") //
+                        .match("^(?<taxDate>[\\d]{1,2}/[\\d]{1,2}/[\\d]{2}) Withholding Tax \\p{Sc}?\\((?<tax>[\\.,\\d]+)\\)$") //
                         .assign((t, v) -> {
+                            if (!asStatementDate(v.get("taxDate")).equals(t.getDateTime()))
+                                return;
+
                             // the dividend credit is the gross amount
                             t.setAmount(t.getAmount() - asAmount(v.get("tax")));
                             processTaxEntries(t, v, type);

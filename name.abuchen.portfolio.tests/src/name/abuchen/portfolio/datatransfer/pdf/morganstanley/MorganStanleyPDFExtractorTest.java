@@ -351,7 +351,8 @@ public class MorganStanleyPDFExtractorTest
 
         // check dividends transaction
         assertThat(results, hasItem(dividend( //
-                        hasDate("2026-03-10T00:00"), hasShares(93.055), //
+                        hasDate("2026-03-10T00:00"), hasExDate(null), //
+                        hasShares(93.055), //
                         hasSource("QuarterlyStatement01.txt"), //
                         hasNote(null), //
                         hasAmount("USD", 132.88), hasGrossValue("USD", 156.33), //
@@ -390,7 +391,8 @@ public class MorganStanleyPDFExtractorTest
 
         // check dividends transaction
         assertThat(results, hasItem(dividend( //
-                        hasDate("2026-06-10T00:00"), hasShares(93.055), //
+                        hasDate("2026-06-10T00:00"), hasExDate(null), //
+                        hasShares(93.055), //
                         hasSource("QuarterlyStatement02.txt"), //
                         hasNote(null), //
                         hasAmount("USD", 133.67), hasGrossValue("USD", 157.26), //
@@ -429,7 +431,8 @@ public class MorganStanleyPDFExtractorTest
 
         // check dividends transaction
         assertThat(results, hasItem(dividend( //
-                        hasDate("2023-03-10T00:00"), hasShares(29.858), //
+                        hasDate("2023-03-10T00:00"), hasExDate(null), //
+                        hasShares(29.858), //
                         hasSource("QuarterlyStatement03.txt"), //
                         hasNote(null), //
                         hasAmount("USD", 41.88), hasGrossValue("USD", 49.27), //
@@ -472,7 +475,8 @@ public class MorganStanleyPDFExtractorTest
         // check dividends transaction (shares include the release before the
         // dividend date, the release itself is not imported)
         assertThat(results, hasItem(dividend( //
-                        hasDate("2025-09-10T00:00"), hasShares(93.055), //
+                        hasDate("2025-09-10T00:00"), hasExDate(null), //
+                        hasShares(93.055), //
                         hasSource("QuarterlyStatement04.txt"), //
                         hasNote(null), //
                         hasAmount("USD", 132.88), hasGrossValue("USD", 156.33), //
@@ -512,7 +516,8 @@ public class MorganStanleyPDFExtractorTest
         // check dividends transaction (opening balance is zero, shares are
         // the two releases before the dividend date)
         assertThat(results, hasItem(dividend( //
-                        hasDate("2022-06-10T00:00"), hasShares(29.000), //
+                        hasDate("2022-06-10T00:00"), hasExDate(null), //
+                        hasShares(29.000), //
                         hasSource("QuarterlyStatement05.txt"), //
                         hasNote(null), //
                         hasAmount("USD", 36.37), hasGrossValue("USD", 47.85), //
@@ -570,7 +575,8 @@ public class MorganStanleyPDFExtractorTest
 
         // check dividends transaction
         assertThat(results, hasItem(dividend( //
-                        hasDate("2022-09-10T00:00"), hasShares(29.267), //
+                        hasDate("2022-09-10T00:00"), hasExDate(null), //
+                        hasShares(29.267), //
                         hasSource("QuarterlyStatement06.txt"), //
                         hasNote(null), //
                         hasAmount("USD", 41.05), hasGrossValue("USD", 48.29), //
@@ -582,6 +588,69 @@ public class MorganStanleyPDFExtractorTest
                         hasSource("QuarterlyStatement06.txt"), //
                         hasNote(null), //
                         hasAmount("USD", 41.05), hasGrossValue("USD", 41.05), //
+                        hasTaxes("USD", 0.00), hasFees("USD", 0.00))));
+    }
+
+    @Test
+    public void testQuarterlyStatementWithholdingTaxOnOtherDate()
+    {
+        var extractor = new MorganStanleyPDFExtractor(new Client());
+
+        List<Exception> errors = new ArrayList<>();
+
+        // @formatter:off
+        // dividend credit without withholding tax, followed by a correction of the withholding tax
+        // on another date: the correction must not be netted into the dividend
+        // @formatter:on
+        var text = """
+                        STATEMENT For the Period July 1 — September 30, 2022
+                        Issuer Description: INTL BUSINESS MACHINES CORP P.O. Box 182616 1-800-367-4777; 1-801-617-7414
+                        Morgan Stanley Smith Barney LLC. Member SIPC.
+                        Number of Shares 29.267 29.267
+                        Share Price $141.1900 $118.8100
+                        SHARE PURCHASE AND HOLDINGS
+                        Transaction Date Activity Type Quantity Price  Amount Total Taxes and Fees Total Net Amount
+                        9/10/22 Dividend Credit $48.29 48.29
+                        9/23/22 Withholding Tax (7.18)
+                        9/23/22 Cancel Withholding Tax 11.48
+                        Sell Transactions are provided as of trade date.
+                        """;
+
+        var results = extractor.extract(PDFInputFile.createTestCase("QuarterlyStatementTaxOnOtherDate.txt", text),
+                        errors);
+
+        assertThat(errors, empty());
+        assertThat(countSecurities(results), is(1L));
+        assertThat(countBuySell(results), is(0L));
+        assertThat(countAccountTransactions(results), is(3L));
+        assertThat(countAccountTransfers(results), is(0L));
+        assertThat(countItemsWithFailureMessage(results), is(0L));
+        assertThat(countSkippedItems(results), is(0L));
+        assertThat(results.size(), is(4));
+        new AssertImportActions().check(results, "USD");
+
+        // check dividends transaction without withholding tax
+        assertThat(results, hasItem(dividend( //
+                        hasDate("2022-09-10T00:00"), hasExDate(null), //
+                        hasShares(29.267), //
+                        hasSource("QuarterlyStatementTaxOnOtherDate.txt"), //
+                        hasNote(null), //
+                        hasAmount("USD", 48.29), hasGrossValue("USD", 48.29), //
+                        hasTaxes("USD", 0.00), hasFees("USD", 0.00))));
+
+        // check withholding tax on the other date
+        assertThat(results, hasItem(taxes( //
+                        hasDate("2022-09-23T00:00"), hasShares(0), //
+                        hasSource("QuarterlyStatementTaxOnOtherDate.txt"), //
+                        hasNote(null), //
+                        hasAmount("USD", 7.18), hasGrossValue("USD", 7.18), //
+                        hasTaxes("USD", 0.00), hasFees("USD", 0.00))));
+
+        assertThat(results, hasItem(taxRefund( //
+                        hasDate("2022-09-23T00:00"), hasShares(0), //
+                        hasSource("QuarterlyStatementTaxOnOtherDate.txt"), //
+                        hasNote(null), //
+                        hasAmount("USD", 11.48), hasGrossValue("USD", 11.48), //
                         hasTaxes("USD", 0.00), hasFees("USD", 0.00))));
     }
 }
