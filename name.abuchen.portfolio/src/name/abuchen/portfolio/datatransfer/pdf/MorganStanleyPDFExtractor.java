@@ -261,7 +261,7 @@ public class MorganStanleyPDFExtractor extends AbstractPDFExtractor
                         // IRS Backup Withholding: $11.48
                         // IRS Nonresident Alien Withholding: $7.52
                         // @formatter:on
-                        .section("currency", "tax").optional() //
+                        .section("currency", "tax").multipleTimes().optional() //
                         .match("^IRS .*Withholding: (?<currency>\\p{Sc})(?<tax>[\\.,\\d]+)$") //
                         .assign((t, v) -> processTaxEntries(t, v, type));
     }
