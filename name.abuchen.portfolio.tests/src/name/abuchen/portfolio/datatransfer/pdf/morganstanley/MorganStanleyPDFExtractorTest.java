@@ -20,6 +20,8 @@ import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.purchase;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.removal;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.sale;
 import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.security;
+import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.taxRefund;
+import static name.abuchen.portfolio.datatransfer.ExtractorMatchers.taxes;
 import static name.abuchen.portfolio.datatransfer.ExtractorTestUtilities.countAccountTransactions;
 import static name.abuchen.portfolio.datatransfer.ExtractorTestUtilities.countAccountTransfers;
 import static name.abuchen.portfolio.datatransfer.ExtractorTestUtilities.countBuySell;
@@ -480,5 +482,106 @@ public class MorganStanleyPDFExtractorTest
         assertThat(results, hasItem(removal( //
                         hasDate("2025-09-11"), hasAmount("USD", 132.88), //
                         hasSource("QuarterlyStatement04.txt"), hasNote(null))));
+    }
+
+    @Test
+    public void testQuarterlyStatement05()
+    {
+        var extractor = new MorganStanleyPDFExtractor(new Client());
+
+        List<Exception> errors = new ArrayList<>();
+
+        var results = extractor.extract(PDFInputFile.loadTestCase(getClass(), "QuarterlyStatement05.txt"), errors);
+
+        assertThat(errors, empty());
+        assertThat(countSecurities(results), is(1L));
+        assertThat(countBuySell(results), is(1L));
+        assertThat(countAccountTransactions(results), is(1L));
+        assertThat(countAccountTransfers(results), is(0L));
+        assertThat(countItemsWithFailureMessage(results), is(0L));
+        assertThat(countSkippedItems(results), is(0L));
+        assertThat(results.size(), is(3));
+        new AssertImportActions().check(results, "USD");
+
+        // check security
+        assertThat(results, hasItem(security( //
+                        hasIsin(null), hasWkn(null), hasTicker(null), //
+                        hasName("INTL BUSINESS MACHINES CORP"), //
+                        hasCurrencyCode("USD"))));
+
+        // check dividends transaction (opening balance is zero, shares are
+        // the two releases before the dividend date)
+        assertThat(results, hasItem(dividend( //
+                        hasDate("2022-06-10T00:00"), hasShares(29.000), //
+                        hasSource("QuarterlyStatement05.txt"), //
+                        hasNote(null), //
+                        hasAmount("USD", 36.37), hasGrossValue("USD", 47.85), //
+                        hasTaxes("USD", 11.48), hasFees("USD", 0.00))));
+
+        // check dividend reinvestment (price and gross amount without currency
+        // symbol and parentheses)
+        assertThat(results, hasItem(purchase( //
+                        hasDate("2022-06-13T00:00"), hasShares(0.267), //
+                        hasSource("QuarterlyStatement05.txt"), //
+                        hasNote(null), //
+                        hasAmount("USD", 36.37), hasGrossValue("USD", 36.37), //
+                        hasTaxes("USD", 0.00), hasFees("USD", 0.00))));
+    }
+
+    @Test
+    public void testQuarterlyStatement06()
+    {
+        var extractor = new MorganStanleyPDFExtractor(new Client());
+
+        List<Exception> errors = new ArrayList<>();
+
+        var results = extractor.extract(PDFInputFile.loadTestCase(getClass(), "QuarterlyStatement06.txt"), errors);
+
+        assertThat(errors, empty());
+        assertThat(countSecurities(results), is(1L));
+        assertThat(countBuySell(results), is(1L));
+        assertThat(countAccountTransactions(results), is(3L));
+        assertThat(countAccountTransfers(results), is(0L));
+        assertThat(countItemsWithFailureMessage(results), is(0L));
+        assertThat(countSkippedItems(results), is(0L));
+        assertThat(results.size(), is(5));
+        new AssertImportActions().check(results, "USD");
+
+        // check security
+        assertThat(results, hasItem(security( //
+                        hasIsin(null), hasWkn(null), hasTicker(null), //
+                        hasName("INTL BUSINESS MACHINES CORP"), //
+                        hasCurrencyCode("USD"))));
+
+        // check correction of the withholding tax of the previous dividend
+        assertThat(results, hasItem(taxes( //
+                        hasDate("2022-08-23T00:00"), hasShares(0), //
+                        hasSource("QuarterlyStatement06.txt"), //
+                        hasNote(null), //
+                        hasAmount("USD", 7.18), hasGrossValue("USD", 7.18), //
+                        hasTaxes("USD", 0.00), hasFees("USD", 0.00))));
+
+        assertThat(results, hasItem(taxRefund( //
+                        hasDate("2022-08-23T00:00"), hasShares(0), //
+                        hasSource("QuarterlyStatement06.txt"), //
+                        hasNote(null), //
+                        hasAmount("USD", 11.48), hasGrossValue("USD", 11.48), //
+                        hasTaxes("USD", 0.00), hasFees("USD", 0.00))));
+
+        // check dividends transaction
+        assertThat(results, hasItem(dividend( //
+                        hasDate("2022-09-10T00:00"), hasShares(29.267), //
+                        hasSource("QuarterlyStatement06.txt"), //
+                        hasNote(null), //
+                        hasAmount("USD", 41.05), hasGrossValue("USD", 48.29), //
+                        hasTaxes("USD", 7.24), hasFees("USD", 0.00))));
+
+        // check dividend reinvestment
+        assertThat(results, hasItem(purchase( //
+                        hasDate("2022-09-13T00:00"), hasShares(0.318), //
+                        hasSource("QuarterlyStatement06.txt"), //
+                        hasNote(null), //
+                        hasAmount("USD", 41.05), hasGrossValue("USD", 41.05), //
+                        hasTaxes("USD", 0.00), hasFees("USD", 0.00))));
     }
 }

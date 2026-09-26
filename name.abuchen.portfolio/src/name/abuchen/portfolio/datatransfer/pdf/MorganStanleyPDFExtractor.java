@@ -43,6 +43,8 @@ import name.abuchen.portfolio.util.Pair;
  *           Quarterly statements contain dividends (the credit is the gross amount,
  *           the withholding tax is a separate line), the disbursement of the proceeds (removal)
  *           and the reinvestment of dividends (purchase).
+ *           Corrections of the withholding tax of a previous dividend are booked as
+ *           tax refund (Cancel Withholding Tax) and taxes (Withholding Tax without dividend credit).
  *           The statement neither contains the CUSIP nor the ticker symbol, only the issuer name.
  *           The number of shares of a dividend is the opening balance plus all shares
  *           released or reinvested before the dividend date.
@@ -465,7 +467,56 @@ public class MorganStanleyPDFExtractor extends AbstractPDFExtractor
                         .wrap(TransactionItem::new));
 
         // @formatter:off
+        // Correction of the withholding tax of a previous dividend (e.g. backup withholding replaced by treaty rate)
+        // 8/23/22 Withholding Tax $(7.18)
+        // @formatter:on
+        var taxesBlock = new Block("^[\\d]{1,2}/[\\d]{1,2}/[\\d]{2} Withholding Tax .*$");
+        type.addBlock(taxesBlock);
+        taxesBlock.set(new Transaction<AccountTransaction>()
+
+                        .subject(() -> new AccountTransaction(AccountTransaction.Type.TAXES))
+
+                        .section("date", "amount") //
+                        .documentContext("name", "currency") //
+                        .match("^(?<date>[\\d]{1,2}/[\\d]{1,2}/[\\d]{2}) Withholding Tax \\p{Sc}?\\((?<amount>[\\.,\\d]+)\\)$") //
+                        .assign((t, v) -> {
+                            // withholding tax of a dividend credit on the same
+                            // date is part of the dividend transaction
+                            if (type.getCurrentContext().containsKey("shares_" + v.get("date")))
+                                return;
+
+                            t.setSecurity(getOrCreateSecurity(v));
+                            t.setDateTime(asStatementDate(v.get("date")));
+                            t.setCurrencyCode(asCurrencyCode(v.get("currency")));
+                            t.setAmount(asAmount(v.get("amount")));
+                        })
+
+                        .wrap(t -> t.getAmount() == 0 ? null : new TransactionItem(t)));
+
+        // @formatter:off
+        // 8/23/22 Cancel Withholding Tax 11.48
+        // @formatter:on
+        var taxRefundBlock = new Block("^[\\d]{1,2}/[\\d]{1,2}/[\\d]{2} Cancel Withholding Tax .*$");
+        type.addBlock(taxRefundBlock);
+        taxRefundBlock.set(new Transaction<AccountTransaction>()
+
+                        .subject(() -> new AccountTransaction(AccountTransaction.Type.TAX_REFUND))
+
+                        .section("date", "amount") //
+                        .documentContext("name", "currency") //
+                        .match("^(?<date>[\\d]{1,2}/[\\d]{1,2}/[\\d]{2}) Cancel Withholding Tax \\p{Sc}?(?<amount>[\\.,\\d]+)$") //
+                        .assign((t, v) -> {
+                            t.setSecurity(getOrCreateSecurity(v));
+                            t.setDateTime(asStatementDate(v.get("date")));
+                            t.setCurrencyCode(asCurrencyCode(v.get("currency")));
+                            t.setAmount(asAmount(v.get("amount")));
+                        })
+
+                        .wrap(TransactionItem::new));
+
+        // @formatter:off
         // 3/13/23 Dividend Reinvested 0.333 $125.7774 (49.27) (41.88)
+        // 6/13/22 Dividend Reinvested 0.267 136.1234 47.85 (36.37)
         // @formatter:on
         var buyBlock = new Block("^[\\d]{1,2}/[\\d]{1,2}/[\\d]{2} Dividend Reinvested .*$");
         type.addBlock(buyBlock);
@@ -475,7 +526,7 @@ public class MorganStanleyPDFExtractor extends AbstractPDFExtractor
 
                         .section("date", "shares", "amount") //
                         .documentContext("name", "currency") //
-                        .match("^(?<date>[\\d]{1,2}/[\\d]{1,2}/[\\d]{2}) Dividend Reinvested (?<shares>[\\.,\\d]+) \\p{Sc}[\\.,\\d]+ \\([\\.,\\d]+\\) \\((?<amount>[\\.,\\d]+)\\)$") //
+                        .match("^(?<date>[\\d]{1,2}/[\\d]{1,2}/[\\d]{2}) Dividend Reinvested (?<shares>[\\.,\\d]+) \\p{Sc}?[\\.,\\d]+ \\(?[\\.,\\d]+\\)? \\((?<amount>[\\.,\\d]+)\\)$") //
                         .assign((t, v) -> {
                             t.setSecurity(getOrCreateSecurity(v));
                             t.setDate(asStatementDate(v.get("date")));
