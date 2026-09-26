@@ -3,12 +3,11 @@ package name.abuchen.portfolio.datatransfer.pdf;
 import static name.abuchen.portfolio.util.TextUtil.concatenate;
 import static name.abuchen.portfolio.util.TextUtil.trim;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
+import name.abuchen.portfolio.Messages;
 import name.abuchen.portfolio.datatransfer.ExtractorUtils;
 import name.abuchen.portfolio.datatransfer.pdf.PDFParser.Block;
 import name.abuchen.portfolio.datatransfer.pdf.PDFParser.DocumentType;
@@ -18,7 +17,6 @@ import name.abuchen.portfolio.model.BuySellEntry;
 import name.abuchen.portfolio.model.Client;
 import name.abuchen.portfolio.model.PortfolioTransaction;
 import name.abuchen.portfolio.money.Values;
-import name.abuchen.portfolio.util.Pair;
 
 /**
  * @formatter:off
@@ -40,18 +38,18 @@ import name.abuchen.portfolio.util.Pair;
  *           This keeps the cost basis at FMV and the net holding at the net quantity.
  *           A residual balance (sale proceeds minus taxes) remains on the account.
  *
- *           Quarterly statements contain dividends (the credit is the gross amount,
- *           the withholding tax is a separate line), the disbursement of the proceeds (removal)
- *           and the reinvestment of dividends (purchase).
- *           Corrections of the withholding tax of a previous dividend are booked as
- *           tax refund (Cancel Withholding Tax) and taxes (Withholding Tax without dividend credit).
+ *           Quarterly statements only import the bookings that are not contained in a single document:
+ *           - disbursement of the proceeds (removal),
+ *           - correction of the withholding tax of a previous dividend (Withholding Tax without dividend credit
+ *             on the same date) as taxes or tax refund depending on the sign,
+ *           - cancellation of a withholding tax (Cancel Withholding Tax), marked as unsupported cancellation.
+ *           Dividends, dividend reinvestments and releases of the statement are not imported,
+ *           they are imported from the dividend reinvestment confirmation and the release detail report.
+ *           The withholding tax of a dividend credit on the same date is skipped.
  *           The statement neither contains the CUSIP nor the ticker symbol, only the issuer name.
- *           The number of shares of a dividend is the opening balance plus all shares
- *           released or reinvested before the dividend date.
- *           Release lines of the statement are not imported. They only contain the net quantity,
- *           the release is imported from the release detail report instead.
- *           Dividend reinvestments are contained in both the statement and the
- *           dividend reinvestment confirmation. Import only one of them for the same period.
+ *
+ *           Dividends that are paid out (without reinvestment) are not supported yet,
+ *           the single document is not available yet.
  * @formatter:on
  */
 @SuppressWarnings("nls")
@@ -316,7 +314,12 @@ public class MorganStanleyPDFExtractor extends AbstractPDFExtractor
                         .match("^(?<note>Award ID: [A-Z0-9]+).*$") //
                         .assign((t, v) -> t.setNote(trim(v.get("note"))))
 
-                        .wrap(t -> t.getPortfolioTransaction().getShares() == 0 ? null : new BuySellEntryItem(t)));
+                        .wrap(t -> {
+                            if (t.getPortfolioTransaction().getCurrencyCode() != null && t.getPortfolioTransaction().getAmount() == 0)
+                                return new SkippedItem(new BuySellEntryItem(t), Messages.MsgErrorTransactionTypeNotSupportedOrRequired);
+
+                            return new BuySellEntryItem(t);
+                        }));
 
         var removalBlock = new Block("^Summary for Release$");
         type.addBlock(removalBlock);
@@ -350,7 +353,12 @@ public class MorganStanleyPDFExtractor extends AbstractPDFExtractor
                         .match("^(?<note>Award ID: [A-Z0-9]+).*$") //
                         .assign((t, v) -> t.setNote(concatenate(t.getNote(), trim(v.get("note")), " | ")))
 
-                        .wrap(t -> t.getAmount() == 0 ? null : new TransactionItem(t)));
+                        .wrap(t -> {
+                            if (t.getCurrencyCode() != null && t.getAmount() == 0)
+                                return new SkippedItem(new TransactionItem(t), Messages.MsgErrorTransactionTypeNotSupportedOrRequired);
+
+                            return new TransactionItem(t);
+                        }));
     }
 
     private void addQuarterlyStatementTransaction()
@@ -358,21 +366,12 @@ public class MorganStanleyPDFExtractor extends AbstractPDFExtractor
         final var type = new DocumentType("SHARE PURCHASE AND HOLDINGS", (context, lines) -> {
             // @formatter:off
             // Issuer Description: INTL BUSINESS MACHINES CORP P.O. Box 182616 1-800-367-4777; 1-801-617-7414
-            // Share Price $294.7800 $282.1600
-            // Number of Shares 62.055 93.055
-            // 7/10/25 Release 31.000 $285.5550
-            // 3/13/23 Dividend Reinvested 0.333 $125.7774 (49.27) (41.88)
-            // 9/10/25 Dividend Credit $156.33 $156.33
+            // Share Price $141.1900 $118.8100
+            // 9/10/22 Dividend Credit $48.29 48.29
             // @formatter:on
             var pName = Pattern.compile("^Issuer Description: (?<name>.*) P\\.O\\. Box .*$");
             var pCurrency = Pattern.compile("^Share Price (?<currency>\\p{Sc})[\\.,\\d]+ .*$");
-            var pOpening = Pattern.compile("^Number of Shares (?<opening>[\\.,\\d]+) [\\.,\\d]+$");
-            var pShareChange = Pattern.compile("^(?<date>[\\d]{1,2}/[\\d]{1,2}/[\\d]{2}) (Release|Dividend Reinvested) (?<shares>[\\.,\\d]+) .*$");
             var pDividend = Pattern.compile("^(?<date>[\\d]{1,2}/[\\d]{1,2}/[\\d]{2}) Dividend Credit .*$");
-
-            var opening = BigDecimal.ZERO;
-            var shareChanges = new ArrayList<Pair<LocalDateTime, BigDecimal>>();
-            var dividendDates = new ArrayList<String>();
 
             for (String line : lines)
             {
@@ -382,72 +381,20 @@ public class MorganStanleyPDFExtractor extends AbstractPDFExtractor
 
                 m = pCurrency.matcher(line);
                 if (m.matches() && !context.containsKey("currency"))
-                    context.put("currency", m.group("currency"));
+                    context.put("currency", asCurrencyCode(m.group("currency")));
 
-                m = pOpening.matcher(line);
-                if (m.matches())
-                    opening = asSharesBigDecimal(m.group("opening"));
-
-                m = pShareChange.matcher(line);
-                if (m.matches())
-                    shareChanges.add(new Pair<>(asStatementDate(m.group("date")), asSharesBigDecimal(m.group("shares"))));
-
+                // Remember the dates of the dividends. The withholding tax
+                // on the same date belongs to the dividend.
                 m = pDividend.matcher(line);
                 if (m.matches())
-                    dividendDates.add(m.group("date"));
-            }
-
-            // The number of shares entitled to the dividend is the opening
-            // balance plus all shares added before the dividend date
-            for (String date : dividendDates)
-            {
-                var dividendDate = asStatementDate(date);
-                var shares = opening;
-                for (var change : shareChanges)
-                {
-                    if (change.getLeft().isBefore(dividendDate))
-                        shares = shares.add(change.getRight());
-                }
-                context.put("shares_" + date, shares.toPlainString());
+                    context.put("dividend_" + m.group("date"), m.group("date"));
             }
         });
 
         this.addDocumentTyp(type);
 
         // @formatter:off
-        // 3/10/26 Dividend Credit $156.33 $156.33
-        // 3/10/26 Withholding Tax (23.45)
-        // @formatter:on
-        var dividendBlock = new Block("^[\\d]{1,2}/[\\d]{1,2}/[\\d]{2} Dividend Credit .*$");
-        type.addBlock(dividendBlock);
-        dividendBlock.set(new Transaction<AccountTransaction>()
-
-                        .subject(() -> new AccountTransaction(AccountTransaction.Type.DIVIDENDS))
-
-                        .section("date", "amount") //
-                        .documentContext("name", "currency") //
-                        .match("^(?<date>[\\d]{1,2}/[\\d]{1,2}/[\\d]{2}) Dividend Credit \\p{Sc}(?<amount>[\\.,\\d]+) .*$") //
-                        .assign((t, v) -> {
-                            t.setSecurity(getOrCreateSecurity(v));
-                            t.setDateTime(asStatementDate(v.get("date")));
-                            t.setShares(asShares(type.getCurrentContext().get("shares_" + v.get("date"))));
-                            t.setCurrencyCode(asCurrencyCode(v.get("currency")));
-                            t.setAmount(asAmount(v.get("amount")));
-                        })
-
-                        .section("tax").optional() //
-                        .documentContext("currency") //
-                        .match("^[\\d]{1,2}/[\\d]{1,2}/[\\d]{2} Withholding Tax \\((?<tax>[\\.,\\d]+)\\)$") //
-                        .assign((t, v) -> {
-                            // the dividend credit is the gross amount
-                            t.setAmount(t.getAmount() - asAmount(v.get("tax")));
-                            processTaxEntries(t, v, type);
-                        })
-
-                        .wrap(TransactionItem::new));
-
-        // @formatter:off
-        // 3/11/26 Proceeds Disbursement (132.88)
+        // 9/11/25 Proceeds Disbursement (132.88)
         // @formatter:on
         var removalBlock = new Block("^[\\d]{1,2}/[\\d]{1,2}/[\\d]{2} Proceeds Disbursement .*$");
         type.addBlock(removalBlock);
@@ -457,10 +404,10 @@ public class MorganStanleyPDFExtractor extends AbstractPDFExtractor
 
                         .section("date", "amount") //
                         .documentContext("currency") //
-                        .match("^(?<date>[\\d]{1,2}/[\\d]{1,2}/[\\d]{2}) Proceeds Disbursement \\((?<amount>[\\.,\\d]+)\\)$") //
+                        .match("^(?<date>[\\d]{1,2}/[\\d]{1,2}/[\\d]{2}) Proceeds Disbursement \\p{Sc}?\\((?<amount>[\\.,\\d]+)\\)$") //
                         .assign((t, v) -> {
                             t.setDateTime(asStatementDate(v.get("date")));
-                            t.setCurrencyCode(asCurrencyCode(v.get("currency")));
+                            t.setCurrencyCode(v.get("currency"));
                             t.setAmount(asAmount(v.get("amount")));
                         })
 
@@ -469,6 +416,9 @@ public class MorganStanleyPDFExtractor extends AbstractPDFExtractor
         // @formatter:off
         // Correction of the withholding tax of a previous dividend (e.g. backup withholding replaced by treaty rate)
         // 8/23/22 Withholding Tax $(7.18)
+        //
+        // Withholding tax of a dividend credit on the same date (imported with the dividend reinvestment confirmation)
+        // 9/10/22 Withholding Tax (7.24)
         // @formatter:on
         var taxesBlock = new Block("^[\\d]{1,2}/[\\d]{1,2}/[\\d]{2} Withholding Tax .*$");
         type.addBlock(taxesBlock);
@@ -476,66 +426,59 @@ public class MorganStanleyPDFExtractor extends AbstractPDFExtractor
 
                         .subject(() -> new AccountTransaction(AccountTransaction.Type.TAXES))
 
-                        .section("date", "amount") //
+                        .section("date", "type", "amount") //
                         .documentContext("name", "currency") //
-                        .match("^(?<date>[\\d]{1,2}/[\\d]{1,2}/[\\d]{2}) Withholding Tax \\p{Sc}?\\((?<amount>[\\.,\\d]+)\\)$") //
+                        .match("^(?<date>[\\d]{1,2}/[\\d]{1,2}/[\\d]{2}) Withholding Tax (?<type>[\\p{Sc}\\(]*)(?<amount>[\\.,\\d]+)\\)?$") //
                         .assign((t, v) -> {
-                            // withholding tax of a dividend credit on the same
-                            // date is part of the dividend transaction
-                            if (type.getCurrentContext().containsKey("shares_" + v.get("date")))
-                                return;
+                            // Is type --> without "(" change from TAXES to TAX_REFUND
+                            if (!v.get("type").contains("("))
+                                t.setType(AccountTransaction.Type.TAX_REFUND);
 
-                            t.setSecurity(getOrCreateSecurity(v));
                             t.setDateTime(asStatementDate(v.get("date")));
-                            t.setCurrencyCode(asCurrencyCode(v.get("currency")));
-                            t.setAmount(asAmount(v.get("amount")));
+                            t.setCurrencyCode(v.get("currency"));
+
+                            // The withholding tax of a dividend credit on the
+                            // same date is part of the dividend and is skipped
+                            if (!type.getCurrentContext().containsKey("dividend_" + v.get("date")))
+                            {
+                                t.setSecurity(getOrCreateSecurity(v));
+                                t.setAmount(asAmount(v.get("amount")));
+                            }
                         })
 
-                        .wrap(t -> t.getAmount() == 0 ? null : new TransactionItem(t)));
+                        .wrap(t -> {
+                            if (t.getCurrencyCode() != null && t.getAmount() == 0)
+                                return new SkippedItem(new TransactionItem(t), Messages.MsgErrorTransactionTypeNotSupportedOrRequired);
+
+                            return new TransactionItem(t);
+                        }));
 
         // @formatter:off
         // 8/23/22 Cancel Withholding Tax 11.48
         // @formatter:on
-        var taxRefundBlock = new Block("^[\\d]{1,2}/[\\d]{1,2}/[\\d]{2} Cancel Withholding Tax .*$");
-        type.addBlock(taxRefundBlock);
-        taxRefundBlock.set(new Transaction<AccountTransaction>()
+        var cancelBlock = new Block("^[\\d]{1,2}/[\\d]{1,2}/[\\d]{2} Cancel Withholding Tax .*$");
+        type.addBlock(cancelBlock);
+        cancelBlock.set(new Transaction<AccountTransaction>()
 
                         .subject(() -> new AccountTransaction(AccountTransaction.Type.TAX_REFUND))
 
-                        .section("date", "amount") //
+                        .section("date", "type", "amount") //
                         .documentContext("name", "currency") //
-                        .match("^(?<date>[\\d]{1,2}/[\\d]{1,2}/[\\d]{2}) Cancel Withholding Tax \\p{Sc}?(?<amount>[\\.,\\d]+)$") //
+                        .match("^(?<date>[\\d]{1,2}/[\\d]{1,2}/[\\d]{2}) Cancel Withholding Tax (?<type>[\\p{Sc}\\(]*)(?<amount>[\\.,\\d]+)\\)?$") //
                         .assign((t, v) -> {
+                            // Is type --> "(" change from TAX_REFUND to TAXES
+                            if (v.get("type").contains("("))
+                                t.setType(AccountTransaction.Type.TAXES);
+
                             t.setSecurity(getOrCreateSecurity(v));
                             t.setDateTime(asStatementDate(v.get("date")));
-                            t.setCurrencyCode(asCurrencyCode(v.get("currency")));
+                            t.setCurrencyCode(v.get("currency"));
                             t.setAmount(asAmount(v.get("amount")));
+
+                            v.markAsFailure(Messages.MsgErrorTransactionOrderCancellationUnsupported);
                         })
 
                         .wrap(TransactionItem::new));
-
-        // @formatter:off
-        // 3/13/23 Dividend Reinvested 0.333 $125.7774 (49.27) (41.88)
-        // 6/13/22 Dividend Reinvested 0.267 136.1234 47.85 (36.37)
-        // @formatter:on
-        var buyBlock = new Block("^[\\d]{1,2}/[\\d]{1,2}/[\\d]{2} Dividend Reinvested .*$");
-        type.addBlock(buyBlock);
-        buyBlock.set(new Transaction<BuySellEntry>()
-
-                        .subject(() -> new BuySellEntry(PortfolioTransaction.Type.BUY))
-
-                        .section("date", "shares", "amount") //
-                        .documentContext("name", "currency") //
-                        .match("^(?<date>[\\d]{1,2}/[\\d]{1,2}/[\\d]{2}) Dividend Reinvested (?<shares>[\\.,\\d]+) \\p{Sc}?[\\.,\\d]+ \\(?[\\.,\\d]+\\)? \\((?<amount>[\\.,\\d]+)\\)$") //
-                        .assign((t, v) -> {
-                            t.setSecurity(getOrCreateSecurity(v));
-                            t.setDate(asStatementDate(v.get("date")));
-                            t.setShares(asShares(v.get("shares")));
-                            t.setCurrencyCode(asCurrencyCode(v.get("currency")));
-                            t.setAmount(asAmount(v.get("amount")));
-                        })
-
-                        .wrap(BuySellEntryItem::new));
     }
 
     /**
@@ -545,11 +488,6 @@ public class MorganStanleyPDFExtractor extends AbstractPDFExtractor
     private LocalDateTime asStatementDate(String date)
     {
         return asDate(date.replaceFirst("^([\\d])/", "0$1/"), Locale.US);
-    }
-
-    private BigDecimal asSharesBigDecimal(String value)
-    {
-        return ExtractorUtils.convertToNumberBigDecimal(value, Values.Share, "en", "US");
     }
 
     private <T extends Transaction<?>> void addTaxesSectionsTransaction(T transaction, DocumentType type)
