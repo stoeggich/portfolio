@@ -654,6 +654,21 @@ public class ReviewExtractedItemsPage extends AbstractWizardPage implements Impo
 
     private void checkEntries(List<ExtractedEntry> entries)
     {
+        // check the items with the existing security chosen by the user, also
+        // in checks which compare the items with each other
+        var restoreSecurities = ExtractedEntry.applySecurityOverrides(entries);
+        try
+        {
+            checkEntriesWithSecurityOverrides(entries);
+        }
+        finally
+        {
+            restoreSecurities.run();
+        }
+    }
+
+    private void checkEntriesWithSecurityOverrides(List<ExtractedEntry> entries)
+    {
         List<ImportAction> actions = new ArrayList<>();
         actions.add(new CheckTransactionDateAction());
         actions.add(new CheckValidTypesAction());

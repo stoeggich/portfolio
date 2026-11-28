@@ -1,6 +1,7 @@
 package name.abuchen.portfolio.ui.wizards.datatransfer;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -111,5 +112,38 @@ public class ExtractedEntry
     public void setSecurityOverride(Security securityOverride)
     {
         this.securityOverride = securityOverride;
+    }
+
+    /**
+     * Sets the existing security which the user has chosen instead of a new
+     * one ("use existing security") at the items of the entries. The checks
+     * then run against the security which is actually imported (the override
+     * is applied the same way when importing, see ImportController). Returns
+     * an action which restores the original securities of the items.
+     */
+    static Runnable applySecurityOverrides(List<ExtractedEntry> entries)
+    {
+        var originals = new IdentityHashMap<Extractor.Item, Security>();
+
+        for (ExtractedEntry entry : entries)
+        {
+            // the security entry itself keeps the new security
+            if (entry.securityOverride == null || entry.item instanceof Extractor.SecurityItem)
+                continue;
+
+            var original = entry.item.getSecurity();
+            try
+            {
+                entry.item.setSecurity(entry.securityOverride);
+                originals.put(entry.item, original);
+            }
+            catch (UnsupportedOperationException e)
+            {
+                // the security of the item cannot be replaced (e.g. security
+                // prices): the item is checked as extracted
+            }
+        }
+
+        return () -> originals.forEach(Extractor.Item::setSecurity);
     }
 }

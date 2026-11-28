@@ -378,6 +378,8 @@ public class ExtractedItemsTable
         if (atLeastOneNotImported)
         {
             manager.add(new SimpleAction(Messages.LabelDoImport, a -> {
+                var securityOverridesReset = false;
+
                 for (Object element : tableViewer.getStructuredSelection().toList())
                 {
                     var entry = (ExtractedEntry) element;
@@ -387,10 +389,14 @@ public class ExtractedItemsTable
                     {
                         entries.stream().filter(e -> e.getSecurityDependency() == entry)
                                         .forEach(e -> e.setSecurityOverride(null));
+                        securityOverridesReset = true;
                     }
                 }
 
-                tableViewer.refresh();
+                if (securityOverridesReset)
+                    notifyEntriesChanged();
+                else
+                    tableViewer.refresh();
             }));
         }
 
@@ -469,9 +475,24 @@ public class ExtractedItemsTable
                 entry.setImported(false);
                 entries.stream().filter(e -> e.getSecurityDependency() == entry)
                                 .forEach(e -> e.setSecurityOverride((Security) selected[0]));
-                tableViewer.refresh();
+
+                // the transactions now refer to another security: check them
+                // again, e.g. for duplicates of existing transactions
+                notifyEntriesChanged();
             }
         }
+    }
+
+    /**
+     * Runs the checks of the page again if available, otherwise refreshes the
+     * table only.
+     */
+    private void notifyEntriesChanged()
+    {
+        if (onEntriesChanged != null)
+            onEntriesChanged.run();
+        else
+            tableViewer.refresh();
     }
 
     abstract static class FormattedLabelProvider extends StyledCellLabelProvider // NOSONAR
