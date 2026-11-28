@@ -92,6 +92,11 @@ public class ExtractedEntry
     {
         this.status.clear();
         this.maxCode = Status.Code.OK;
+
+        // the match with an investment plan is a result of the checks as well
+        // (see DetectDuplicatesAction) and the security may have changed since
+        // the last check
+        this.item.setInvestmentPlanItem(false);
     }
 
     public ExtractedEntry getSecurityDependency()

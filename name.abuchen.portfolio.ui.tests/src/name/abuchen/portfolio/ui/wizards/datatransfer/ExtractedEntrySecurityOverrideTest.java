@@ -19,6 +19,7 @@ import name.abuchen.portfolio.junit.SecurityBuilder;
 import name.abuchen.portfolio.model.Account;
 import name.abuchen.portfolio.model.BuySellEntry;
 import name.abuchen.portfolio.model.Client;
+import name.abuchen.portfolio.model.InvestmentPlan;
 import name.abuchen.portfolio.model.Portfolio;
 import name.abuchen.portfolio.model.PortfolioTransaction;
 import name.abuchen.portfolio.model.Security;
@@ -34,6 +35,7 @@ public class ExtractedEntrySecurityOverrideTest
     private Account account;
     private Portfolio portfolio;
     private Security existing;
+    private Security planned;
     private Security newSecurity;
 
     private ExtractedEntry securityEntry;
@@ -50,6 +52,23 @@ public class ExtractedEntrySecurityOverrideTest
         existing = new SecurityBuilder(CurrencyUnit.EUR).addTo(client);
         portfolio = new PortfolioBuilder(account)
                         .buy(existing, DATE, Values.Share.factorize(1), Values.Amount.factorize(1000)).addTo(client);
+
+        // an existing security with a transaction of an investment plan
+        planned = new SecurityBuilder(CurrencyUnit.EUR).addTo(client);
+        var plan = new InvestmentPlan("plan");
+        plan.setSecurity(planned);
+        plan.setPortfolio(portfolio);
+        client.addPlan(plan);
+
+        var planTransaction = new PortfolioTransaction();
+        planTransaction.setType(PortfolioTransaction.Type.BUY);
+        planTransaction.setDateTime(LocalDateTime.parse(DATE + "T00:00"));
+        planTransaction.setSecurity(planned);
+        planTransaction.setShares(Values.Share.factorize(1));
+        planTransaction.setCurrencyCode(CurrencyUnit.EUR);
+        planTransaction.setAmount(Values.Amount.factorize(1000));
+        portfolio.addTransaction(planTransaction);
+        plan.getTransactions().add(planTransaction);
 
         // extracted again from the same document, but the extractor did not
         // recognize the existing security and creates a new one
@@ -99,8 +118,28 @@ public class ExtractedEntrySecurityOverrideTest
     /** as "Use existing security" of the table */
     private void useExistingSecurity()
     {
+        useExistingSecurity(existing);
+    }
+
+    private void useExistingSecurity(Security security)
+    {
         securityEntry.setImported(false);
-        purchase.setSecurityOverride(existing);
+        purchase.setSecurityOverride(security);
+    }
+
+    /** as the checks of the review page */
+    private void check()
+    {
+        var restore = ExtractedEntry.applySecurityOverrides(entries);
+        try
+        {
+            purchase.clearStatus();
+            purchase.addStatus(purchase.getItem().apply(new DetectDuplicatesAction(client), context));
+        }
+        finally
+        {
+            restore.run();
+        }
     }
 
     private Code checkForDuplicates()
@@ -166,5 +205,31 @@ public class ExtractedEntrySecurityOverrideTest
         purchase.setSecurityOverride(null);
 
         assertThat(checkForDuplicates(), is(Code.OK));
+    }
+
+    @Test
+    public void testInvestmentPlanMatchIsImported()
+    {
+        useExistingSecurity(planned);
+        check();
+
+        assertThat(purchase.getMaxCode(), is(Code.WARNING));
+        assertThat(purchase.getItem().isInvestmentPlanItem(), is(true));
+        assertThat(purchase.isImported(), is(true));
+    }
+
+    @Test
+    public void testInvestmentPlanMatchIsResetForAnotherSecurity()
+    {
+        useExistingSecurity(planned);
+        check();
+
+        // the other security has a regular duplicate
+        useExistingSecurity(existing);
+        check();
+
+        assertThat(purchase.getMaxCode(), is(Code.WARNING));
+        assertThat(purchase.getItem().isInvestmentPlanItem(), is(false));
+        assertThat(purchase.isImported(), is(false));
     }
 }
